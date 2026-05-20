@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安燃云 — 智慧燃气安全管理中枢</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+tailwind = { config: { theme: { extend: {} } } }
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+  --bg-root: #090D16;
+  --glow-blue: rgba(2,132,199,0.03);
+  --glow-green: rgba(34,197,94,0.03);
+  --card-bg-start: rgba(15,23,42,0.6);
+  --card-bg-end: rgba(30,41,59,0.4);
+  --border-ghost: rgba(255,255,255,0.08);
+  --text-main: #E2E8F0;
+  --text-sub: #94A3B8;
+  --text-muted: #64748B;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0;
+  background: var(--bg-root);
+  color: var(--text-main);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* 全局光晕 */
+.bg-glow {
+  position: fixed; pointer-events: none; z-index: 0;
+  width: 100vw; height: 100vh; top: 0; left: 0;
+}
+.bg-glow::before {
+  content: ''; position: absolute;
+  top: -120px; right: -80px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(2,132,199,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.bg-glow::after {
+  content: ''; position: absolute;
+  bottom: -100px; left: -60px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(34,197,94,0.05) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+/* 玻璃态卡片 */
+.glass-card {
+  background: linear-gradient(135deg, var(--card-bg-start) 0%, var(--card-bg-end) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-ghost);
+  border-radius: 16px;
+}
+.glass-card-sm {
+  background: linear-gradient(135deg, rgba(15,23,42,0.5) 0%, rgba(30,41,59,0.3) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 260px; min-width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, rgba(9,13,22,0.95) 0%, rgba(15,23,42,0.8) 100%);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  z-index: 10;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+.menu-parent {
+  padding: 10px 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--text-sub);
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+.menu-parent:hover { color: #E2E8F0; background: rgba(255,255,255,0.03); }
+.menu-parent.active { color: #38BDF8; border-left-color: #38BDF8; background: rgba(56,189,248,0.08); }
+.menu-parent .icon { width: 20px; text-align: center; font-size: 14px; }
+
+.menu-child {
+  padding: 8px 20px 8px 52px; cursor: pointer;
+  font-size: 13px; color: var(--text-muted);
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+.menu-child:hover { color: #CBD5E1; background: rgba(255,255,255,0.02); }
+.menu-child.router-active { color: #38BDF8; border-left-color: #38BDF8; background: rgba(56,189,248,0.06); font-weight: 600; }
+
+.menu-arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; }
+.menu-arrow.open { transform: rotate(90deg); }
+
+/* Header */
+.topbar {
+  height: 56px; min-height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px;
+  background: linear-gradient(180deg, rgba(15,23,42,0.7) 0%, rgba(9,13,22,0.4) 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 5;
+}
+
+/* KPI 卡片 */
+.kpi-card {
+  background: linear-gradient(135deg, rgba(15,23,42,0.55) 0%, rgba(30,41,59,0.35) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 18px 22px;
+  transition: all 0.25s;
+}
+.kpi-card:hover {
+  border-color: rgba(56,189,248,0.25);
+  box-shadow: 0 0 20px rgba(56,189,248,0.06);
+}
+
+.kpi-value { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.kpi-value.flash { animation: valueFlash 0.4s ease-out; }
+@keyframes valueFlash {
+  0% { text-shadow: 0 0 16px rgba(56,189,248,0.6); }
+  100% { text-shadow: none; }
+}
+
+/* 骨架屏 */
+.skeleton-line {
+  height: 14px; border-radius: 6px;
+  background: linear-gradient(90deg, rgba(30,41,59,0.4) 0%, rgba(51,65,85,0.5) 50%, rgba(30,41,59,0.4) 100%);
+  animation: skPulse 1.8s ease-in-out infinite;
+}
+.skeleton-block {
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(30,41,59,0.3) 0%, rgba(51,65,85,0.4) 50%, rgba(30,41,59,0.3) 100%);
+  animation: skPulse 1.8s ease-in-out infinite;
+}
+@keyframes skPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* 红色预警闪烁覆盖层 */
+.alert-overlay {
+  position: fixed; inset: 0; z-index: 100; pointer-events: none;
+  background: transparent;
+  transition: background 0.6s;
+}
+.alert-overlay.active {
+  background: rgba(239,68,68,0.08);
+  animation: alertPulse 1.2s ease-in-out infinite;
+}
+@keyframes alertPulse {
+  0%, 100% { background: rgba(239,68,68,0.05); }
+  50% { background: rgba(239,68,68,0.14); }
+}
+
+/* 模态框 */
+.alert-modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+}
+.alert-modal {
+  width: 560px; max-width: 90vw;
+  background: linear-gradient(135deg, rgba(20,10,10,0.95) 0%, rgba(40,15,15,0.9) 100%);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: 20px; padding: 32px;
+  box-shadow: 0 0 60px rgba(239,68,68,0.25), 0 8px 32px rgba(0,0,0,0.5);
+  animation: modalIn 0.4s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* 进度条 */
+.prog-bar-track {
+  height: 8px; border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.prog-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #22C55E, #4ADE80);
+  transition: width 1.2s ease-out;
+  box-shadow: 0 0 8px rgba(34,197,94,0.3);
+}
+
+/* 图表容器 */
+.chart-box { width: 100%; height: 360px; }
+
+/* 厨房场景（CV 对比） */
+.kitchen-frame {
+  width: 100%; aspect-ratio: 4/3;
+  border-radius: 10px; overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.kitchen-bg {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg,
+    #e8e0d8 0%, #e8e0d8 38%,
+    #d4ccc4 38%, #d4ccc4 40%,
+    #c8c0b8 40%, #c8c0b8 56%,
+    #3a3a3e 56%, #3a3a3e 100%
+  );
+  position: relative;
+}
+/* 灶台 */
+.stove {
+  position: absolute; bottom: 18%; left: 15%;
+  width: 45%; height: 22%;
+  background: linear-gradient(180deg, #c0c0c8, #8a8a92);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.stove::before {
+  content: ''; position: absolute;
+  top: 10px; left: 18%; width: 25%; height: 25%;
+  background: radial-gradient(circle, #3a3a3e, #1a1a20);
+  border-radius: 50%;
+  border: 3px solid #6a6a72;
+}
+.stove::after {
+  content: ''; position: absolute;
+  top: 10px; right: 18%; width: 25%; height: 25%;
+  background: radial-gradient(circle, #3a3a3e, #1a1a20);
+  border-radius: 50%;
+  border: 3px solid #6a6a72;
+}
+/* 煤气罐 */
+.cylinder {
+  position: absolute; bottom: 16%; right: 12%;
+  width: 18%; height: 38%;
+  background: linear-gradient(180deg, #e87830, #c05018, #a03810);
+  border-radius: 10px 10px 18px 18px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.cylinder::before {
+  content: ''; position: absolute;
+  top: -8px; left: 50%; transform: translateX(-50%);
+  width: 40%; height: 12px;
+  background: #888;
+  border-radius: 3px;
+}
+/* 软管 */
+.hose {
+  position: absolute; bottom: 40%; left: 59%; width: 16%; height: 6px;
+  background: #1a1a1e;
+  border-radius: 3px;
+  transform: rotate(-8deg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+/* 缺陷标注框 */
+.defect-box {
+  position: absolute;
+  border: 2.5px solid #EF4444;
+  border-radius: 4px;
+  animation: boxBlink 1.8s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(239,68,68,0.45);
+  pointer-events: none;
+}
+@keyframes boxBlink {
+  0%, 100% { border-color: #EF4444; box-shadow: 0 0 8px rgba(239,68,68,0.35); }
+  50% { border-color: #FCA5A5; box-shadow: 0 0 16px rgba(239,68,68,0.6); }
+}
+.defect-tag {
+  position: absolute; top: -22px; left: 0;
+  background: rgba(239,68,68,0.92);
+  color: #fff; font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 3px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+/* 区块链存证卡片 */
+.chain-card {
+  background: linear-gradient(135deg, rgba(30,35,40,0.8) 0%, rgba(40,45,50,0.6) 100%);
+  border: 1px solid rgba(180,160,100,0.3);
+  border-radius: 14px; padding: 20px 24px;
+  position: relative;
+}
+.chain-card::before {
+  content: '🔒'; position: absolute; top: -12px; left: 20px;
+  font-size: 20px; background: #1a1a20; padding: 0 6px; border-radius: 4px;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
+
+/* 过渡 */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* 实时数据点 */
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #22C55E;
+  display: inline-block;
+  animation: dotPulse 2s ease-in-out infinite;
+  margin-right: 6px;
+}
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(34,197,94,0.5); }
+  50% { box-shadow: 0 0 12px rgba(34,197,94,0.9); }
+}
+
+/* header bell */
+.bell-icon {
+  color: rgba(148,163,184,0.5);
+  font-size: 15px; cursor: pointer;
+  transition: color 0.2s;
+}
+.bell-icon:hover { color: rgba(226,232,240,0.8); }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- 背景光晕 -->
+<div class="bg-glow"></div>
+
+<!-- 红色预警闪烁覆盖层 -->
+<div :class="['alert-overlay', { active: alertActive }]"></div>
+
+<!-- 预警模态框 -->
+<div v-if="alertActive" class="alert-modal-backdrop" @click.self="dismissAlert">
+  <div class="alert-modal">
+    <div style="text-align:center; font-size:48px; margin-bottom:8px;">⚠️</div>
+    <div style="font-size:13px; color:#FCA5A5; text-align:center; margin-bottom:16px; letter-spacing:2px;">
+      ▸ 全域物联紧急响应预警机制 ◂
+    </div>
+    <div style="font-size:15px; font-weight:700; color:#FEE2E2; text-align:center; line-height:1.6; margin-bottom:20px;">
+      警告：湘乡市东风小区 3 栋 402 室<br>联网报警器触发浓度超标预警<br>
+      <span style="font-size:28px; color:#EF4444;">当前浓度 22%</span>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px; color:#94A3B8; margin-bottom:6px;">
+        <i class="fa-solid fa-circle-check" style="color:#22C55E;"></i>
+        自动化指令已下发：智能信息角阀已实施远程物理阻断锁死
+      </div>
+      <div class="prog-bar-track">
+        <div class="prog-bar-fill" :style="{ width: progress1 + '%' }"></div>
+      </div>
+      <div style="font-size:11px; color:#22C55E; text-align:right; margin-top:2px;" v-if="progress1 >= 100">[已完成]</div>
+    </div>
+    <div style="margin-bottom:24px;">
+      <div style="font-size:12px; color:#94A3B8; margin-bottom:6px;">
+        <i class="fa-solid fa-circle-check" style="color:#22C55E;"></i>
+        分级响应机制启动：紧急工单已秒级推流至网格员（张兵）手机
+      </div>
+      <div class="prog-bar-track">
+        <div class="prog-bar-fill" :style="{ width: progress2 + '%' }"></div>
+      </div>
+      <div style="font-size:11px; color:#22C55E; text-align:right; margin-top:2px;" v-if="progress2 >= 100">[已完成]</div>
+    </div>
+    <button @click="dismissAlert"
+      style="width:100%; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);
+             background:rgba(255,255,255,0.06); color:#CBD5E1; font-size:14px; cursor:pointer;
+             transition:all 0.2s;"
+      onmouseover="this.style.background='rgba(255,255,255,0.14)'"
+      onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+      确认知悉，持续监控
+    </button>
+  </div>
+</div>
+
+<!-- 主布局 -->
+<div style="display:flex; height:100vh; position:relative; z-index:1;">
+
+  <!-- ====== 侧边栏 ====== -->
+  <aside class="sidebar">
+    <div style="padding:20px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.06);">
+      <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0284C7,#22C55E);display:flex;align-items:center;justify-content:center;font-size:18px;">🛡️</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#E2E8F0;line-height:1.2;">安燃云</div>
+        <div style="font-size:10px;color:#64748B;">ANRAN CLOUD v2.4</div>
+      </div>
+    </div>
+
+    <nav style="flex:1; padding:8px 0;">
+      <template v-for="menu in menuTree" :key="menu.id">
+        <!-- 父级菜单 -->
+        <div class="menu-parent" :class="{ active: menu.id === expandedParent }"
+             @click="toggleParent(menu.id)">
+          <span class="icon" v-html="menu.icon"></span>
+          <span>{{ menu.label }}</span>
+          <i class="fa-solid fa-chevron-right menu-arrow" :class="{ open: menu.id === expandedParent }"></i>
+        </div>
+        <!-- 子菜单 -->
+        <div v-if="menu.id === expandedParent" style="overflow:hidden;">
+          <div v-for="child in menu.children" :key="child.id"
+               class="menu-child"
+               :class="{ 'router-active': currentPage === child.id }"
+               @click="navigateTo(child.id, menu.id)">
+            {{ child.label }}
+          </div>
+        </div>
+      </template>
+    </nav>
+
+    <div style="padding:14px 20px; border-top:1px solid rgba(255,255,255,0.06); font-size:11px; color:#475569;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="live-dot"></span> 系统运行中 · v2.4.1
+      </div>
+    </div>
+  </aside>
+
+  <!-- ====== 主内容区 ====== -->
+  <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+
+    <!-- ====== Header ====== -->
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:13px;color:#64748B;">{{ breadcrumb }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;">
+        <!-- 实时指标 -->
+        <div style="display:flex;align-items:center;gap:16px;font-size:12px;">
+          <span style="color:#94A3B8;">气瓶总量 <b style="color:#E2E8F0;" :class="{ flash: gasFlash }">{{ gasTotalDisplay }}</b></span>
+          <span style="color:#94A3B8;">新增用户 <b style="color:#E2E8F0;" :class="{ flash: userFlash }">{{ userTotalDisplay }}</b></span>
+        </div>
+        <!-- 隐藏预警铃铛 -->
+        <i class="fa-solid fa-bell bell-icon" title="系统通知" @dblclick="triggerAlert" style="margin-right:4px;"></i>
+        <!-- 用户头像 -->
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#334155,#475569);display:flex;align-items:center;justify-content:center;font-size:12px;color:#94A3B8;">管</div>
+          <span style="font-size:12px;color:#94A3B8;">管理员</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ====== 页面内容 ====== -->
+    <div style="flex:1; overflow-y:auto; padding:24px 28px;">
+
+      <!-- ============================================================ -->
+      <!-- 工作台 (Dashboard) -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'dashboard'">
+        <!-- KPI 卡片行 -->
+        <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:16px; margin-bottom:24px;">
+          <div class="kpi-card">
+            <div style="font-size:11px;color:#64748B;margin-bottom:6px;">🛢️ 今日气瓶总量</div>
+            <div class="kpi-value" style="color:#38BDF8;" :class="{ flash: gasFlash }">{{ gasTotalDisplay }}</div>
+            <div style="font-size:11px;color:#22C55E;margin-top:4px;">▲ 较昨日 +3</div>
+          </div>
+          <div class="kpi-card">
+            <div style="font-size:11px;color:#64748B;margin-bottom:6px;">👥 日新增用户</div>
+            <div class="kpi-value" style="color:#4ADE80;" :class="{ flash: userFlash }">{{ userTotalDisplay }}</div>
+            <div style="font-size:11px;color:#22C55E;margin-top:4px;">▲ 较昨日 +12</div>
+          </div>
+          <div class="kpi-card">
+            <div style="font-size:11px;color:#64748B;margin-bottom:6px;">📡 在线角阀数</div>
+            <div class="kpi-value" style="color:#A78BFA;">2,847</div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:4px;">在线率 98.3%</div>
+          </div>
+          <div class="kpi-card">
+            <div style="font-size:11px;color:#64748B;margin-bottom:6px;">✅ 本月安检次数</div>
+            <div class="kpi-value" style="color:#FBBF24;">1,256</div>
+            <div style="font-size:11px;color:#22C55E;margin-top:4px;">▲ 较上月 +87</div>
+          </div>
+          <div class="kpi-card">
+            <div style="font-size:11px;color:#64748B;margin-bottom:6px;">⚠️ 待处理隐患</div>
+            <div class="kpi-value" style="color:#F87171;">23</div>
+            <div style="font-size:11px;color:#EF4444;margin-top:4px;">▼ 较昨日 -2</div>
+          </div>
+        </div>
+
+        <!-- ECharts 图表 -->
+        <div class="glass-card" style="padding:20px 24px; margin-bottom:24px;">
+          <div style="font-size:14px;font-weight:600;color:#E2E8F0;margin-bottom:4px;">📈 近7日运营核心指标</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">气瓶流转总量 & 活跃送气工数 · 实时数据面板</div>
+          <div ref="chartRef" class="chart-box"></div>
+        </div>
+
+        <!-- 底部双卡片 -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div class="glass-card" style="padding:18px 22px;">
+            <div style="font-size:13px;font-weight:600;color:#E2E8F0;margin-bottom:12px;">🔔 最近预警事件</div>
+            <div v-for="(ev, i) in recentAlerts" :key="i"
+                 style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;">
+              <span :style="{color: ev.level === 'high' ? '#EF4444' : '#FBBF24'}">●</span>
+              <span style="flex:1;color:#CBD5E1;">{{ ev.msg }}</span>
+              <span style="color:#64748B;font-size:11px;">{{ ev.time }}</span>
+            </div>
+          </div>
+          <div class="glass-card" style="padding:18px 22px;">
+            <div style="font-size:13px;font-weight:600;color:#E2E8F0;margin-bottom:12px;">💼 商业服务定价</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;">
+                <span style="font-size:13px;color:#CBD5E1;">SaaS 基础服务订阅</span>
+                <span style="font-size:14px;font-weight:700;color:#38BDF8;">¥3,000-8,000 <span style="font-size:11px;color:#64748B;">/站/年</span></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;">
+                <span style="font-size:13px;color:#CBD5E1;">数据扩容服务</span>
+                <span style="font-size:14px;font-weight:700;color:#4ADE80;">¥0.5 <span style="font-size:11px;color:#64748B;">/户/年</span></span>
+              </div>
+              <div style="font-size:11px;color:#64748B;text-align:right;">覆盖全国 320+ 燃气站点 · 自我造血闭环</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 一瓶一码溯源轨迹 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'cylinder-trace'">
+        <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">🛢️ 一瓶一码溯源轨迹</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">基于物联网标识解析与区块链存证，实现钢瓶全生命周期可信追溯</div>
+          <!-- 搜索栏 -->
+          <div style="display:flex;gap:12px;margin-bottom:16px;">
+            <input placeholder="输入钢瓶编码 / 溯源码查询..." style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(15,23,42,0.6);color:#E2E8F0;font-size:13px;outline:none;">
+            <button style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#0284C7,#0369A1);color:#fff;font-size:13px;cursor:pointer;">查询追溯</button>
+          </div>
+          <!-- 钢瓶列表 -->
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead>
+              <tr style="color:#64748B;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <th style="padding:10px 8px;">钢瓶编码</th>
+                <th style="padding:10px 8px;">规格</th>
+                <th style="padding:10px 8px;">末次充装</th>
+                <th style="padding:10px 8px;">当前位置</th>
+                <th style="padding:10px 8px;">存证状态</th>
+                <th style="padding:10px 8px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(c, i) in cylinderList" :key="i" style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td style="padding:10px 8px;color:#38BDF8;font-weight:600;">{{ c.code }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ c.spec }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ c.lastFill }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ c.location }}</td>
+                <td style="padding:10px 8px;"><span style="color:#22C55E;font-size:11px;">● 已上链</span></td>
+                <td style="padding:10px 8px;">
+                  <button @click="showBlockchain(c)" style="padding:4px 12px;border-radius:4px;border:1px solid rgba(180,160,100,0.4);background:transparent;color:#FBBF24;font-size:11px;cursor:pointer;">查看存证</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 区块链存证详情 -->
+        <div v-if="selectedCylinder" class="chain-card" style="margin-top:16px;">
+          <div style="font-size:14px;font-weight:700;color:#FBBF24;margin-bottom:14px;">
+            联盟链存证档案 <span style="font-size:11px;color:#94A3B8;font-weight:400;">（蚂蚁链/长安链技术支持）</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+            <div style="color:#94A3B8;">钢瓶编码</div><div style="color:#E2E8F0;font-weight:600;">{{ selectedCylinder.code }}</div>
+            <div style="color:#94A3B8;">存证区块高度</div><div style="color:#38BDF8;font-family:monospace;">#1826503</div>
+            <div style="color:#94A3B8;">交易哈希 (TxHash)</div><div style="color:#CBD5E1;font-family:monospace;font-size:11px;word-break:break-all;">0x7a9f8b4e6d3c2d1e0fb973ee29634540b2d679de44eff030793e2a1b5c6d8</div>
+            <div style="color:#94A3B8;">上链时间</div><div style="color:#CBD5E1;">2026-05-20 14:32:08</div>
+            <div style="color:#94A3B8;">存证状态</div><div style="color:#22C55E;">✓ 已同步至第三方保险核验接口，关键安全数据不可篡改</div>
+            <div style="color:#94A3B8;">智能合约地址</div><div style="color:#CBD5E1;font-family:monospace;font-size:11px;">0x8c3f2a1b...b9e7d6f5</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 入户安检记录（CV 对比组件） -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'safety-inspection'">
+        <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">🔍 入户安检记录 — 计算机视觉隐患判定</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:20px;">计算机视觉分析引擎自动比对 · 隐患特征精准圈定 · 联动工单闭环整改</div>
+
+          <!-- 对比组件 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <!-- 左：原始照片 -->
+            <div>
+              <div style="font-size:12px;color:#94A3B8;margin-bottom:8px;">
+                <i class="fa-solid fa-camera"></i> 原始入户照片
+                <span style="margin-left:12px;font-size:11px;color:#64748B;">拍摄：2026-05-19 15:22 · 送气工 陈建国（工号 GX-0382）</span>
+              </div>
+              <div class="kitchen-frame">
+                <div class="kitchen-bg">
+                  <div class="stove"></div>
+                  <div class="cylinder"></div>
+                  <div class="hose"></div>
+                </div>
+              </div>
+            </div>
+            <!-- 右：分析结果 -->
+            <div>
+              <div style="font-size:12px;color:#94A3B8;margin-bottom:8px;">
+                <i class="fa-solid fa-microscope"></i> 计算机视觉分析引擎判定
+                <span style="margin-left:12px;font-size:11px;color:#EF4444;">● 3 处隐患特征检出</span>
+              </div>
+              <div class="kitchen-frame">
+                <div class="kitchen-bg" style="position:relative;">
+                  <div class="stove"></div>
+                  <div class="cylinder"></div>
+                  <div class="hose"></div>
+                  <!-- 红框1：灶具缺熄火保护针 -->
+                  <div class="defect-box" style="left:17%;top:30%;width:41%;height:20%;">
+                    <span class="defect-tag">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
+                  </div>
+                  <!-- 红框2：软管老化 -->
+                  <div class="defect-box" style="left:57%;top:54%;width:20%;height:8%;">
+                    <span class="defect-tag" style="top:auto;bottom:-20px;">[!] 软管老化迹象，疑似微漏风险</span>
+                  </div>
+                  <!-- 红框3：钢瓶过期 -->
+                  <div class="defect-box" style="right:8%;bottom:12%;width:22%;height:36%;">
+                    <span class="defect-tag">[!] 钢瓶超期未检（末检 2023-01）</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 联动工单 -->
+          <div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+            <div style="font-size:13px;font-weight:600;color:#FBBF24;margin-bottom:10px;">📋 自动生成隐患限期整改工单</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:12px;">
+              <div><span style="color:#64748B;">工单编号</span><br><span style="color:#E2E8F0;">WO-2026-0520-0038</span></div>
+              <div><span style="color:#64748B;">整改时限</span><br><span style="color:#EF4444;">2026-05-27 前</span></div>
+              <div><span style="color:#64748B;">责任网格员</span><br><span style="color:#E2E8F0;">张兵（编号 G-015）</span></div>
+              <div><span style="color:#64748B;">工单状态</span><br><span style="color:#FBBF24;">● 待签收处理</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 智能角阀在线监测 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'valve-monitor'">
+        <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">📡 智能角阀在线监测</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">全量物联角阀实时心跳监测 · 在线率 98.3%</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#4ADE80;">2,847</div>
+              <div style="font-size:11px;color:#64748B;">在线总数</div>
+            </div>
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#F87171;">49</div>
+              <div style="font-size:11px;color:#64748B;">离线异常</div>
+            </div>
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#FBBF24;">12</div>
+              <div style="font-size:11px;color:#64748B;">低电量预警</div>
+            </div>
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#38BDF8;">3</div>
+              <div style="font-size:11px;color:#64748B;">主动闭锁中</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+              <thead><tr style="color:#64748B;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <th style="padding:10px 8px;">角阀 ID</th><th style="padding:10px 8px;">绑定钢瓶</th><th style="padding:10px 8px;">安装地址</th><th style="padding:10px 8px;">信号强度</th><th style="padding:10px 8px;">阀门状态</th><th style="padding:10px 8px;">最后心跳</th>
+              </tr></thead>
+              <tbody>
+                <tr v-for="i in 6" :key="i" style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                  <td style="padding:10px 8px;color:#38BDF8;">VL-2026-00{{ 100 + i }}</td>
+                  <td style="padding:10px 8px;color:#CBD5E1;">CY-0{{ 230 + i }}</td>
+                  <td style="padding:10px 8px;color:#CBD5E1;">湘乡市东风小区 {{ i }} 栋</td>
+                  <td style="padding:10px 8px;color:#22C55E;">{{ 78 + i*2 }}%</td>
+                  <td style="padding:10px 8px;color:#22C55E;">● 正常</td>
+                  <td style="padding:10px 8px;color:#64748B;">{{ i < 4 ? '刚刚' : i + '分钟前' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 报警器漏气动态 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'alarm-status'">
+        <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">🚨 报警器漏气动态</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">联网报警器实时浓度回传 · 分级预警响应</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#22C55E;">4,312</div>
+              <div style="font-size:11px;color:#64748B;">监测点位总数</div>
+            </div>
+            <div class="kpi-card" style="text-align:center;border-color:rgba(239,68,68,0.25);">
+              <div style="font-size:28px;font-weight:700;color:#EF4444;">2</div>
+              <div style="font-size:11px;color:#EF4444;">当前预警中</div>
+            </div>
+            <div class="kpi-card" style="text-align:center;">
+              <div style="font-size:28px;font-weight:700;color:#FBBF24;">8</div>
+              <div style="font-size:11px;color:#64748B;">今日已解除</div>
+            </div>
+          </div>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="color:#64748B;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <th style="padding:10px 8px;">报警器 ID</th><th style="padding:10px 8px;">安装地址</th><th style="padding:10px 8px;">浓度读数</th><th style="padding:10px 8px;">报警等级</th><th style="padding:10px 8px;">触发时间</th><th style="padding:10px 8px;">联动状态</th>
+            </tr></thead>
+            <tbody>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.03);background:rgba(239,68,68,0.06);">
+                <td style="padding:10px 8px;color:#38BDF8;">AL-2026-03012</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">湘乡市东风小区 3-402</td>
+                <td style="padding:10px 8px;color:#EF4444;font-weight:700;">22%</td>
+                <td style="padding:10px 8px;"><span style="background:#EF4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">高 危</span></td>
+                <td style="padding:10px 8px;color:#CBD5E1;">14:32:08</td>
+                <td style="padding:10px 8px;color:#22C55E;">✓ 已闭锁+已派单</td>
+              </tr>
+              <tr v-for="i in 4" :key="i" style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td style="padding:10px 8px;color:#38BDF8;">AL-2026-030{{ 8 + i }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">湘乡市各监测点 #{{ i }}</td>
+                <td style="padding:10px 8px;color:#22C55E;">0.0%</td>
+                <td style="padding:10px 8px;"><span style="background:#22C55E;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">正常</span></td>
+                <td style="padding:10px 8px;color:#CBD5E1;">--</td>
+                <td style="padding:10px 8px;color:#64748B;">--</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 隐患整改工单 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'hazard-order'">
+        <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">📋 隐患整改工单</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">计算机视觉分析引擎 + 物联报警器自动生成 · 闭环跟踪</div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <button v-for="s in orderStatuses" :key="s.val"
+              @click="orderFilter = s.val"
+              :style="{padding:'6px 14px',borderRadius:'6px',border:'1px solid rgba(255,255,255,0.1)',background:orderFilter===s.val?'rgba(56,189,248,0.15)':'transparent',color:orderFilter===s.val?'#38BDF8':'#94A3B8',fontSize:'12px',cursor:'pointer'}">
+              {{ s.label }}
+            </button>
+          </div>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="color:#64748B;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <th style="padding:10px 8px;">工单号</th><th style="padding:10px 8px;">来源</th><th style="padding:10px 8px;">隐患描述</th><th style="padding:10px 8px;">责任人</th><th style="padding:10px 8px;">状态</th><th style="padding:10px 8px;">截止日期</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="(o, i) in filteredOrders" :key="i" style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td style="padding:10px 8px;color:#38BDF8;">{{ o.id }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ o.source }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ o.desc }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ o.person }}</td>
+                <td style="padding:10px 8px;"><span :style="{background:o.color,color:'#fff',padding:'2px 8px',borderRadius:'4px',fontSize:'11px'}">{{ o.status }}</span></td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ o.deadline }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 智能充装记录 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'filling-record'">
+        <div class="glass-card" style="padding:20px 24px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:4px;">⚡ 智能充装记录</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:16px;">充装枪物联数据自动采集 · 充前充后扫码核验</div>
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="color:#64748B;text-align:left;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <th style="padding:10px 8px;">记录 ID</th><th style="padding:10px 8px;">钢瓶编码</th><th style="padding:10px 8px;">充装量(kg)</th><th style="padding:10px 8px;">充装时间</th><th style="padding:10px 8px;">操作员</th><th style="padding:10px 8px;">存证</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="i in 5" :key="i" style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td style="padding:10px 8px;color:#38BDF8;">FL-0520-00{{ i }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">CY-0023{{ i }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">{{ 12.5 - i*0.2 }}</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">2026-05-20 0{{ i }}:{{ 10+i*3 }}:00</td>
+                <td style="padding:10px 8px;color:#CBD5E1;">操作员-{{ i }}</td>
+                <td style="padding:10px 8px;color:#22C55E;">● 区块链已存证</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 骨架屏模板（其余页面共用） -->
+      <!-- ============================================================ -->
+      <div v-if="isSkeletonPage">
+        <div class="glass-card" style="padding:24px 28px;">
+          <div style="font-size:15px;font-weight:700;color:#E2E8F0;margin-bottom:6px;">{{ pageTitle }}</div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:24px;">[当前账户：运营主站] 实时台账运行中，数据同步正常...</div>
+          <!-- 骨架条 -->
+          <div class="skeleton-line" style="width:65%;margin-bottom:14px;"></div>
+          <div class="skeleton-line" style="width:40%;margin-bottom:14px;"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+            <div class="skeleton-block" style="height:100px;" v-for="i in 3" :key="i"></div>
+          </div>
+          <div class="skeleton-block" style="height:200px;margin-bottom:14px;"></div>
+          <div class="skeleton-line" style="width:80%;margin-bottom:10px;" v-for="i in 5" :key="i"></div>
+          <!-- 虚线空态装饰 -->
+          <div style="margin-top:20px;padding:20px;border:1px dashed rgba(255,255,255,0.08);border-radius:10px;text-align:center;color:#475569;font-size:12px;">
+            <i class="fa-solid fa-cube" style="font-size:24px;margin-bottom:8px;display:block;"></i>
+            此模块数据引擎已就绪，等待正式环境接入后自动渲染
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page content -->
+  </main>
+</div><!-- /main layout -->
+
+</div><!-- /#app -->
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>
+const { createApp, ref, computed, onMounted, onUnmounted, nextTick, reactive } = Vue;
+
+createApp({
+  setup() {
+    // ========== 导航状态 ==========
+    const currentPage = ref('dashboard');
+    const expandedParent = ref('data-center');
+
+    const menuTree = [
+      { id: 'data-center', label: '📊 数据中心', icon: '', children: [
+        { id: 'dashboard', label: '工作台' },
+        { id: 'government', label: '政府监管大屏接口' }
+      ]},
+      { id: 'cylinder', label: '🛢️ 钢瓶资产管控', icon: '', children: [
+        { id: 'cylinder-archive', label: '钢瓶电子档案' },
+        { id: 'cylinder-trace', label: '一瓶一码溯源轨迹' },
+        { id: 'filling-record', label: '智能充装记录' },
+        { id: 'scrap-cylinder', label: '超期/报废瓶库' }
+      ]},
+      { id: 'iot-safety', label: '🚨 物联安全预警', icon: '', children: [
+        { id: 'valve-monitor', label: '智能角阀在线监测' },
+        { id: 'alarm-status', label: '报警器漏气动态' },
+        { id: 'hazard-order', label: '隐患整改工单' }
+      ]},
+      { id: 'order-dispatch', label: '🚚 订单与调度', icon: '', children: [
+        { id: 'order-hall', label: '实时订单大厅' },
+        { id: 'lbs-dispatch', label: 'LBS自动派单' }
+      ]},
+      { id: 'customer-safety', label: '👥 客户与安检', icon: '', children: [
+        { id: 'customer-archive', label: '客户信息档案' },
+        { id: 'safety-inspection', label: '入户安检记录' },
+        { id: 'family-accounts', label: '亲情账号列表' }
+      ]},
+      { id: 'finance', label: '💰 财务与结算', icon: '', children: [
+        { id: 'finance-reconcile', label: '充装与销售对账' },
+        { id: 'revenue-report', label: '营收数据报表' }
+      ]},
+      { id: 'settings', label: '⚙️ 系统设置', icon: '', children: [
+        { id: 'staff-mgmt', label: '员工与权限管理' },
+        { id: 'station-config', label: '气站基础配置' }
+      ]}
+    ];
+
+    const pageTitleMap = {
+      'dashboard': '工作台', 'government': '政府监管大屏接口',
+      'cylinder-archive': '钢瓶电子档案', 'cylinder-trace': '一瓶一码溯源轨迹',
+      'filling-record': '智能充装记录', 'scrap-cylinder': '超期/报废瓶库',
+      'valve-monitor': '智能角阀在线监测', 'alarm-status': '报警器漏气动态',
+      'hazard-order': '隐患整改工单',
+      'order-hall': '实时订单大厅', 'lbs-dispatch': 'LBS自动派单',
+      'customer-archive': '客户信息档案', 'safety-inspection': '入户安检记录',
+      'family-accounts': '亲情账号列表',
+      'finance-reconcile': '充装与销售对账', 'revenue-report': '营收数据报表',
+      'staff-mgmt': '员工与权限管理', 'station-config': '气站基础配置'
+    };
+
+    const skeletonPages = [
+      'government', 'cylinder-archive', 'scrap-cylinder',
+      'order-hall', 'lbs-dispatch', 'customer-archive', 'family-accounts',
+      'finance-reconcile', 'revenue-report', 'staff-mgmt', 'station-config'
+    ];
+
+    const isSkeletonPage = computed(() => skeletonPages.includes(currentPage.value));
+    const pageTitle = computed(() => pageTitleMap[currentPage.value] || currentPage.value);
+    const breadcrumb = computed(() => {
+      const title = pageTitleMap[currentPage.value];
+      for (const m of menuTree) {
+        for (const c of m.children) {
+          if (c.id === currentPage.value) return m.label.replace(/[📊🛢️🚨🚚👥💰⚙️]\s?/, '') + ' / ' + title;
+        }
+      }
+      return title;
+    });
+
+    function navigateTo(pageId, parentId) {
+      currentPage.value = pageId;
+      expandedParent.value = parentId;
+    }
+    function toggleParent(id) {
+      expandedParent.value = expandedParent.value === id ? '' : id;
+    }
+
+    // ========== 实时数据抖动 ==========
+    const gasTotal = ref(148);
+    const newUsers = ref(874);
+    const gasFlash = ref(false);
+    const userFlash = ref(false);
+    const gasTotalDisplay = computed(() => gasTotal.value);
+    const userTotalDisplay = computed(() => newUsers.value);
+
+    let gasTimer, userTimer;
+    onMounted(() => {
+      gasTimer = setInterval(() => {
+        const delta = Math.random() > 0.5 ? 1 : -1;
+        gasTotal.value += delta;
+        gasFlash.value = true;
+        setTimeout(() => gasFlash.value = false, 400);
+      }, 4000);
+      userTimer = setInterval(() => {
+        const delta = Math.floor(Math.random() * 5) + 3;
+        newUsers.value += (Math.random() > 0.5 ? delta : -delta);
+        userFlash.value = true;
+        setTimeout(() => userFlash.value = false, 400);
+      }, 3000);
+    });
+    onUnmounted(() => {
+      clearInterval(gasTimer);
+      clearInterval(userTimer);
+    });
+
+    // ========== 预警彩蛋 ==========
+    const alertActive = ref(false);
+    const progress1 = ref(0);
+    const progress2 = ref(0);
+    let progTimer1, progTimer2;
+
+    function triggerAlert() {
+      if (alertActive.value) return;
+      alertActive.value = true;
+      progress1.value = 0;
+      progress2.value = 0;
+      // 进度条动画
+      let p1 = 0;
+      progTimer1 = setInterval(() => {
+        p1 += 4;
+        progress1.value = Math.min(p1, 100);
+        if (p1 >= 100) clearInterval(progTimer1);
+      }, 45);
+      setTimeout(() => {
+        let p2 = 0;
+        progTimer2 = setInterval(() => {
+          p2 += 5;
+          progress2.value = Math.min(p2, 100);
+          if (p2 >= 100) clearInterval(progTimer2);
+        }, 40);
+      }, 600);
+    }
+
+    function dismissAlert() {
+      clearInterval(progTimer1);
+      clearInterval(progTimer2);
+      alertActive.value = false;
+      progress1.value = 0;
+      progress2.value = 0;
+    }
+
+    // ========== 工作台 - 最近预警 ==========
+    const recentAlerts = [
+      { level: 'high', msg: '湘乡市东风小区3-402 浓度超标22%', time: '14:32' },
+      { level: 'mid', msg: '城西液化气站 角阀VL-0182 低电量', time: '13:15' },
+      { level: 'mid', msg: '城南餐饮街 报警器AL-0291 离线超时', time: '11:48' },
+      { level: 'high', msg: '东山办事处 钢瓶CY-0047 超期未检', time: '09:22' }
+    ];
+
+    // ========== 溯源 - 钢瓶列表 ==========
+    const cylinderList = [
+      { code: 'CY-00231', spec: 'YSP-15/15kg', lastFill: '2026-05-20 08:30', location: '湘乡市东风小区3-402' },
+      { code: 'CY-00232', spec: 'YSP-50/50kg', lastFill: '2026-05-20 07:15', location: '城西液化气站' },
+      { code: 'CY-00233', spec: 'YSP-15/15kg', lastFill: '2026-05-19 16:42', location: '城南餐饮街8号' },
+      { code: 'CY-00234', spec: 'YSP-15/15kg', lastFill: '2026-05-19 14:20', location: '东山办事处食堂' },
+      { code: 'CY-00235', spec: 'YSP-50/50kg', lastFill: '2026-05-19 11:08', location: '湘乡市工业园A区' }
+    ];
+    const selectedCylinder = ref(null);
+    function showBlockchain(c) {
+      selectedCylinder.value = selectedCylinder.value === c ? null : c;
+    }
+
+    // ========== 工单列表 ==========
+    const orderFilter = ref('all');
+    const orderStatuses = [
+      { label: '全部', val: 'all' }, { label: '待处理', val: 'pending' },
+      { label: '处理中', val: 'processing' }, { label: '已完成', val: 'done' }
+    ];
+    const allOrders = [
+      { id: 'WO-0520-0038', source: '计算机视觉分析引擎', desc: '灶具缺乏熄火保护针', person: '张兵', status: '待签收', color: '#EF4444', deadline: '2026-05-27', _filter: 'pending' },
+      { id: 'WO-0520-0035', source: '报警器自动触发', desc: '浓度超标22%预警', person: '张兵', status: '处理中', color: '#FBBF24', deadline: '2026-05-20', _filter: 'processing' },
+      { id: 'WO-0519-0032', source: '计算机视觉分析引擎', desc: '软管老化疑似微漏', person: '李刚', status: '已完成', color: '#22C55E', deadline: '2026-05-22', _filter: 'done' },
+      { id: 'WO-0519-0031', source: '例行巡检', desc: '钢瓶超期未检', person: '王建国', status: '已完成', color: '#22C55E', deadline: '2026-05-19', _filter: 'done' },
+      { id: 'WO-0518-0029', source: '计算机视觉分析引擎', desc: '灶具连接管老化', person: '张兵', status: '待签收', color: '#EF4444', deadline: '2026-05-25', _filter: 'pending' }
+    ];
+    const filteredOrders = computed(() => {
+      if (orderFilter.value === 'all') return allOrders;
+      return allOrders.filter(o => o._filter === orderFilter.value);
+    });
+
+    // ========== ECharts 初始化 ==========
+    const chartRef = ref(null);
+    let chartInstance = null;
+
+    function initChart() {
+      if (!chartRef.value) return;
+      chartInstance = echarts.init(chartRef.value);
+
+      // 动态生成近7天日期
+      const dates = [];
+      const today = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        dates.push((d.getMonth() + 1) + '/' + d.getDate());
+      }
+
+      // 固定历史数据（7天），中点第4天=178
+      const gasData = [132, 156, 141, 178, 163, 152, 148];
+      const workerData = [18, 22, 15, 27, 24, 19, 21];
+
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: 'rgba(15,23,42,0.92)',
+          borderColor: 'rgba(255,255,255,0.1)',
+          textStyle: { color: '#E2E8F0', fontSize: 12 },
+          formatter: function(params) {
+            let html = '<div style="font-weight:700;margin-bottom:4px;">' + params[0].axisValue + '</div>';
+            params.forEach(function(p) {
+              html += '<div style="display:flex;align-items:center;gap:6px;">' +
+                '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + p.color + ';"></span>' +
+                p.seriesName + ': <b>' + p.value + '</b></div>';
+            });
+            return html;
+          }
+        },
+        legend: {
+          bottom: 0, textStyle: { color: '#94A3B8', fontSize: 11 },
+          data: ['气瓶流转总量', '活跃送气工数']
+        },
+        grid: { left: '3%', right: '4%', top: 40, bottom: 40 },
+        xAxis: {
+          type: 'category', data: dates,
+          axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+          axisTick: { show: false },
+          axisLabel: { color: '#94A3B8', fontSize: 11 }
+        },
+        yAxis: [
+          {
+            type: 'value', name: '气瓶量', nameTextStyle: { color: '#64748B', fontSize: 10 },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.04)' } },
+            axisLabel: { color: '#64748B', fontSize: 10 }
+          },
+          {
+            type: 'value', name: '人数', nameTextStyle: { color: '#64748B', fontSize: 10 },
+            splitLine: { show: false },
+            axisLabel: { color: '#64748B', fontSize: 10 }
+          }
+        ],
+        series: [
+          {
+            name: '气瓶流转总量', type: 'line', data: gasData,
+            smooth: true, symbol: 'circle', symbolSize: 8,
+            lineStyle: {
+              width: 3,
+              color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                { offset: 0, color: '#0284C7' }, { offset: 1, color: '#38BDF8' }
+              ]),
+              shadowBlur: 10, shadowColor: 'rgba(56,189,248,0.5)'
+            },
+            itemStyle: { color: '#38BDF8', borderColor: '#fff', borderWidth: 2 },
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(56,189,248,0.25)' },
+                { offset: 1, color: 'rgba(56,189,248,0.02)' }
+              ])
+            },
+            markLine: {
+              silent: true,
+              symbol: 'none',
+              lineStyle: { type: 'dashed', color: '#FBBF24', width: 1.5, shadowBlur: 8, shadowColor: 'rgba(251,191,36,0.4)' },
+              label: { color: '#FBBF24', fontSize: 11, formatter: '峰值 {c}' },
+              data: [{ xAxis: dates[3], name: '峰值节点' }]
+            }
+          },
+          {
+            name: '活跃送气工数', type: 'bar', yAxisIndex: 1, data: workerData,
+            barWidth: 16,
+            itemStyle: {
+              borderRadius: 4,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(34,197,94,0.7)' },
+                { offset: 1, color: 'rgba(34,197,94,0.15)' }
+              ])
+            }
+          }
+        ]
+      };
+
+      chartInstance.setOption(option);
+      window.addEventListener('resize', () => chartInstance && chartInstance.resize());
+    }
+
+    onMounted(() => {
+      nextTick(() => initChart());
+    });
+
+    // ========== 导出所有状态 ==========
+    return {
+      currentPage, expandedParent, menuTree,
+      isSkeletonPage, pageTitle, breadcrumb,
+      navigateTo, toggleParent,
+      gasTotal, newUsers, gasFlash, userFlash,
+      gasTotalDisplay, userTotalDisplay,
+      alertActive, progress1, progress2,
+      triggerAlert, dismissAlert,
+      recentAlerts,
+      cylinderList, selectedCylinder, showBlockchain,
+      orderFilter, orderStatuses, filteredOrders,
+      chartRef
+    };
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>
