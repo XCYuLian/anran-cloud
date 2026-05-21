@@ -1,15 +1,23 @@
+<!--
+  安燃云 B端Web综合管理中枢
+  纯前端单文件，双击就能跑。Vue3 + Tailwind + ECharts + FontAwesome，全部走 CDN。
+  别在这儿加 npm 包，别引外部图片，别写 AI 两个字。
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>安燃云 — 智慧燃气安全管理中枢</title>
+<!-- 图标库 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<!-- Tailwind 走 CDN，按需编译 -->
 <script>
 tailwind = { config: { theme: { extend: {} } } }
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
+/* ========== 全局变量，改主题色从这里下手 ========== */
 :root {
   --bg-root: #F4F6F9;
   --card-bg: rgba(255,255,255,0.85);
@@ -26,6 +34,7 @@ tailwind = { config: { theme: { extend: {} } } }
   --red-alert: #EF4444;
 }
 
+/* 基础重置 */
 * { box-sizing: border-box; }
 body {
   margin: 0; padding: 0;
@@ -36,7 +45,7 @@ body {
   height: 100vh;
 }
 
-/* 全局光晕 — 亮色微光 */
+/* 背景微光，右上蓝左下绿，很淡，别调太高不然显脏 */
 .bg-glow {
   position: fixed; pointer-events: none; z-index: 0;
   width: 100vw; height: 100vh; top: 0; left: 0;
@@ -56,7 +65,7 @@ body {
   border-radius: 50%;
 }
 
-/* 玻璃态卡片 — 净白光 */
+/* 主卡片：毛玻璃 + 细阴影，整个系统的视觉基调 */
 .glass-card {
   background: var(--card-bg);
   backdrop-filter: blur(12px);
@@ -73,7 +82,7 @@ body {
   border-radius: 12px;
 }
 
-/* 侧边栏 — 一体白 */
+/* 左侧导航，半透白底，和主区域用阴影过渡 */
 .sidebar {
   width: 260px; min-width: 260px;
   height: 100vh;
@@ -88,6 +97,7 @@ body {
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
 
+/* 一级菜单 */
 .menu-parent {
   padding: 10px 20px; cursor: pointer;
   display: flex; align-items: center; gap: 10px;
@@ -100,6 +110,7 @@ body {
 .menu-parent.active { color: var(--blue-accent); border-left-color: var(--blue-accent); background: rgba(14,165,233,0.08); }
 .menu-parent .icon { width: 20px; text-align: center; font-size: 14px; }
 
+/* 二级菜单，缩进 52px */
 .menu-child {
   padding: 8px 20px 8px 52px; cursor: pointer;
   font-size: 13px; color: var(--text-muted);
@@ -113,7 +124,7 @@ body {
 .menu-arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; }
 .menu-arrow.open { transform: rotate(90deg); }
 
-/* Header */
+/* 顶部栏，毛玻璃白底 */
 .topbar {
   height: 56px; min-height: 56px;
   display: flex; align-items: center; justify-content: space-between;
@@ -125,7 +136,7 @@ body {
   z-index: 5;
 }
 
-/* KPI 卡片 */
+/* 数据卡片，hover 时边框亮蓝 */
 .kpi-card {
   background: var(--card-bg);
   backdrop-filter: blur(10px);
@@ -140,6 +151,7 @@ body {
   box-shadow: var(--shadow-hover);
 }
 
+/* 大数字 + 实时抖动微放大 */
 .kpi-value { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
 .kpi-value.flash { animation: valueFlash 0.4s ease-out; }
 @keyframes valueFlash {
@@ -147,7 +159,7 @@ body {
   100% { transform: scale(1); }
 }
 
-/* 骨架屏 */
+/* 骨架屏占位，灰色块循环呼吸 */
 .skeleton-line {
   height: 14px; border-radius: 6px;
   background: linear-gradient(90deg, rgba(226,232,240,0.5) 0%, rgba(203,213,225,0.7) 50%, rgba(226,232,240,0.5) 100%);
@@ -163,10 +175,10 @@ body {
   50% { opacity: 0.9; }
 }
 
-/* 图表容器 */
+/* ECharts 必须给具体宽高，不能用百分比 */
 .chart-box { width: 100%; height: 360px; }
 
-/* 厨房场景（CV 对比） */
+/* 安检页的厨房场景，纯 CSS 画的灶台+钢瓶+软管 */
 .kitchen-frame {
   width: 100%; aspect-ratio: 4/3;
   border-radius: 10px; overflow: hidden;
@@ -178,6 +190,7 @@ body {
   background: linear-gradient(180deg, #E2E8F0 0%, #F1F5F9 60%, #CBD5E1 100%);
   position: relative;
 }
+/* ::before = 银色灶台 */
 .kitchen-bg::before {
   content: ''; position: absolute;
   left: 8%; bottom: 15%; width: 50%; height: 25%;
@@ -186,6 +199,7 @@ body {
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1);
   z-index: 5;
 }
+/* ::after = 右下角 LPG 钢瓶 */
 .kitchen-bg::after {
   content: 'LPG'; position: absolute;
   right: 12%; bottom: 5%; width: 20%; height: 45%;
@@ -196,7 +210,7 @@ body {
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
   z-index: 5;
 }
-/* 连接灶台与钢瓶的橙红色燃气软管 */
+/* .gas-pipe = 灶台到钢瓶之间的橙色软管，用的 border 拼出来的弧形 */
 .gas-pipe {
   position: absolute;
   left: 54%; bottom: 18%; width: 18%; height: 14%;
@@ -205,7 +219,7 @@ body {
   border-radius: 0 0 16px 0;
   z-index: 2;
 }
-/* 缺陷标注框 */
+/* CV 分析标出来的隐患红框，会闪 */
 .defect-box {
   position: absolute;
   border: 2.5px solid #EF4444;
@@ -230,7 +244,7 @@ body {
   pointer-events: none;
 }
 
-/* 区块链存证卡片 — 浅色安全质感 */
+/* 区块链存证卡片，浅绿色底，带锁头 */
 .chain-card {
   background: rgba(240,253,244,0.6);
   border: 1px solid rgba(34,197,94,0.2);
@@ -243,7 +257,7 @@ body {
   font-size: 20px; background: #F4F6F9; padding: 0 6px; border-radius: 4px;
 }
 
-/* CV 隐患工单区 */
+/* 安检页隐患工单联动区，浅粉警告色 */
 .cv-workorder {
   border-top: 1px solid rgba(226,232,240,0.8);
   padding-top: 16px;
@@ -258,7 +272,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
 
-/* 实时数据点 */
+/* header 旁边的绿色呼吸灯，表示系统在线 */
 .live-dot {
   width: 7px; height: 7px; border-radius: 50%;
   background: #22C55E;
@@ -271,7 +285,7 @@ body {
   50% { box-shadow: 0 0 12px rgba(34,197,94,0.9); }
 }
 
-/* header bell */
+/* 顶部小铃铛，纯装饰，没绑事件 */
 .bell-icon {
   color: rgba(100,116,139,0.4);
   font-size: 15px; cursor: pointer;
@@ -279,7 +293,7 @@ body {
 }
 .bell-icon:hover { color: rgba(15,23,42,0.55); }
 
-/* 合规红黑榜进度条 */
+/* 政府大屏的合规进度条 */
 .rank-bar {
   height: 10px; border-radius: 5px;
   background: rgba(0,0,0,0.04);
@@ -287,14 +301,14 @@ body {
 }
 .rank-fill { height: 100%; border-radius: 5px; transition: width 0.6s; }
 
-/* 滚动台账 */
+/* 政务高危台账滚动列表 */
 .scroll-ledger {
   max-height: 200px; overflow-y: auto;
 }
 .scroll-ledger::-webkit-scrollbar { width: 3px; }
 .scroll-ledger::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 2px; }
 
-/* 加载遮罩 */
+/* 首屏加载遮罩，CDN 慢的时候挡一下白屏 */
 .loading-overlay {
   position: fixed; inset: 0; z-index: 50;
   background: rgba(244,246,249,0.92);
@@ -318,6 +332,7 @@ body {
 
 <div id="app">
 
+<!-- 首屏加载，图表渲染完就消失 -->
 <!-- 加载遮罩 -->
 <div :class="['loading-overlay', { 'fade-out': !isLoading }]" v-if="showLoading">
   <div style="text-align:center;">
@@ -332,7 +347,7 @@ body {
 <!-- 主布局 -->
 <div style="display:flex; height:100vh; position:relative; z-index:1;">
 
-  <!-- ====== 侧边栏 ====== -->
+  <!-- ====== 左侧导航，七组菜单，二级折叠 ====== -->
   <aside class="sidebar">
     <div style="padding:20px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(226,232,240,0.6);">
       <img src="Pic/纯图标LOGO.png" alt="安燃云" style="width:76px;height:76px;border-radius:10px;object-fit:contain;">
@@ -368,7 +383,7 @@ body {
     </div>
   </aside>
 
-  <!-- ====== 主内容区 ====== -->
+  <!-- ====== 右侧主区域，Header + 页面内容 ====== -->
   <main style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
 
     <!-- ====== Header ====== -->
@@ -392,12 +407,10 @@ body {
       </div>
     </header>
 
-    <!-- ====== 页面内容 ====== -->
+    <!-- ====== 页面内容，靠 currentPage 切换，全是 v-if ====== -->
     <div style="flex:1; overflow-y:auto; padding:24px 28px;">
 
-      <!-- ============================================================ -->
-      <!-- 工作台 (Dashboard) -->
-      <!-- ============================================================ -->
+      <!-- ========== 工作台：默认首页，KPI卡片+图表+预警+定价 ========== -->
       <div v-if="currentPage === 'dashboard'">
         <!-- KPI 卡片行 -->
         <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:16px; margin-bottom:24px;">
@@ -463,9 +476,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 一瓶一码溯源轨迹 -->
-      <!-- ============================================================ -->
+      <!-- ========== 一瓶一码溯源：钢瓶列表 + 区块链存证详情 ========== -->
       <div v-if="currentPage === 'cylinder-trace'">
         <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">🛢️ 一瓶一码溯源轨迹</div>
@@ -513,9 +524,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 入户安检记录（CV 对比组件） -->
-      <!-- ============================================================ -->
+      <!-- ========== 入户安检：左侧原图 vs 右侧计算机视觉分析引擎红框标注 ========== -->
       <div v-if="currentPage === 'safety-inspection'">
         <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">🔍 入户安检记录 — 计算机视觉隐患判定</div>
@@ -574,9 +583,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 智能角阀在线监测 -->
-      <!-- ============================================================ -->
+      <!-- ========== 角阀监测：状态卡片 + 设备列表 ========== -->
       <div v-if="currentPage === 'valve-monitor'">
         <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">📡 智能角阀在线监测</div>
@@ -619,9 +626,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 报警器漏气动态 -->
-      <!-- ============================================================ -->
+      <!-- ========== 报警器动态：浓度回传 + 分级预警列表 ========== -->
       <div v-if="currentPage === 'alarm-status'">
         <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">🚨 报警器漏气动态</div>
@@ -666,9 +671,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 隐患整改工单 -->
-      <!-- ============================================================ -->
+      <!-- ========== 隐患工单：筛选 + 列表 ========== -->
       <div v-if="currentPage === 'hazard-order'">
         <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">📋 隐患整改工单</div>
@@ -698,9 +701,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 智能充装记录（增强版） -->
-      <!-- ============================================================ -->
+      <!-- ========== 充装记录：联锁台账 + 防作弊动态 ========== -->
       <div v-if="currentPage === 'filling-record'">
         <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">⚡ 智能充装枪联锁台账</div>
@@ -757,9 +758,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 政府监管大屏接口 -->
-      <!-- ============================================================ -->
+      <!-- ========== 政府大屏：三栏驾驶舱，台账+态势图+红黑榜 ========== -->
       <div v-if="currentPage === 'government'">
         <div style="display:grid;grid-template-columns:280px 1fr 280px;gap:16px;height:100%;">
           <!-- 左侧：政务高危穿透台账 -->
@@ -813,9 +812,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 实时订单大厅 -->
-      <!-- ============================================================ -->
+      <!-- ========== 订单大厅：KPI看板 + 列表 + LBS路径卡片 ========== -->
       <div v-if="currentPage === 'order-hall'">
         <!-- KPI 看板 -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
@@ -888,9 +885,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 营收数据报表 -->
-      <!-- ============================================================ -->
+      <!-- ========== 营收报表：SaaS订阅+保险佣金+财务明细 ========== -->
       <div v-if="currentPage === 'revenue-report'">
         <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">💰 营收数据报表 — 商业造血看板</div>
@@ -945,9 +940,7 @@ body {
         </div>
       </div>
 
-      <!-- ============================================================ -->
-      <!-- 骨架屏模板（其余页面共用） -->
-      <!-- ============================================================ -->
+      <!-- ========== 剩下没做的页面统一走骨架屏 ========== -->
       <div v-if="isSkeletonPage">
         <div class="glass-card" style="padding:24px 28px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:6px;">{{ pageTitle }}</div>
@@ -979,7 +972,7 @@ const { createApp, ref, computed, onMounted, onUnmounted, nextTick, reactive, wa
 
 createApp({
   setup() {
-    // ========== 导航状态 ==========
+    // ---------- 导航 ----------
     const currentPage = ref('dashboard');
     const expandedParent = ref('data-center');
 
@@ -1031,6 +1024,7 @@ createApp({
       'staff-mgmt': '员工与权限管理', 'station-config': '气站基础配置'
     };
 
+    // 这些页面统一走骨架屏
     const skeletonPages = [
       'cylinder-archive', 'scrap-cylinder',
       'lbs-dispatch', 'customer-archive', 'family-accounts',
@@ -1057,7 +1051,7 @@ createApp({
       expandedParent.value = expandedParent.value === id ? '' : id;
     }
 
-    // ========== 实时数据抖动 ==========
+    // ---------- 实时数据抖动，假装有物联网设备在推流 ----------
     const gasTotal = ref(148);
     const newUsers = ref(874);
     const gasFlash = ref(false);
@@ -1065,7 +1059,7 @@ createApp({
     const gasTotalDisplay = computed(() => gasTotal.value);
     const userTotalDisplay = computed(() => newUsers.value);
 
-    // ========== 加载状态 ==========
+    // ---------- 首屏 Loading 控制 ----------
     const isLoading = ref(true);
     const showLoading = ref(true);
 
@@ -1073,12 +1067,14 @@ createApp({
     let chartResizeHandler = null;
 
     onMounted(() => {
+      // 气瓶总量 ±1，每 4 秒抖一次
       gasTimer = setInterval(() => {
         const delta = Math.random() > 0.5 ? 1 : -1;
         gasTotal.value += delta;
         gasFlash.value = true;
         setTimeout(() => gasFlash.value = false, 400);
       }, 4000);
+      // 新增用户 ±3~5，每 3 秒抖一次
       userTimer = setInterval(() => {
         const delta = Math.floor(Math.random() * 5) + 3;
         newUsers.value += (Math.random() > 0.5 ? delta : -delta);
@@ -1086,14 +1082,17 @@ createApp({
         setTimeout(() => userFlash.value = false, 400);
       }, 3000);
 
+      // 等 DOM 出来再画图表
       nextTick(() => initChart());
 
+      // 加载遮罩淡出
       setTimeout(() => {
         isLoading.value = false;
         setTimeout(() => { showLoading.value = false; }, 500);
       }, 800);
     });
 
+    // 页面销毁时清理所有定时器和图表实例
     onUnmounted(() => {
       clearInterval(gasTimer);
       clearInterval(userTimer);
@@ -1102,7 +1101,7 @@ createApp({
       if (govChartInstance) govChartInstance.dispose();
     });
 
-    // ========== 工作台 - 最近预警 ==========
+    // 工作台底部"最近预警"列表，写死的几条数据
     const recentAlerts = [
       { level: 'high', msg: '湘乡市东风小区3-402 浓度超标22%', time: '14:32' },
       { level: 'mid', msg: '城西液化气站 角阀VL-0182 低电量', time: '13:15' },
@@ -1110,7 +1109,7 @@ createApp({
       { level: 'high', msg: '东山办事处 钢瓶CY-0047 超期未检', time: '09:22' }
     ];
 
-    // ========== 溯源 - 钢瓶列表 ==========
+    // 一瓶一码溯源，写死的 5 条钢瓶数据
     const cylinderList = [
       { code: 'CY-00231', spec: 'YSP-15/15kg', lastFill: '2026-05-20 08:30', location: '湘乡市东风小区3-402' },
       { code: 'CY-00232', spec: 'YSP-50/50kg', lastFill: '2026-05-20 07:15', location: '城西液化气站' },
@@ -1123,7 +1122,7 @@ createApp({
       selectedCylinder.value = selectedCylinder.value === c ? null : c;
     }
 
-    // ========== 工单列表 ==========
+    // 隐患工单，支持状态筛选
     const orderFilter = ref('all');
     const orderStatuses = [
       { label: '全部', val: 'all' }, { label: '待处理', val: 'pending' },
@@ -1141,7 +1140,7 @@ createApp({
       return allOrders.filter(o => o._filter === orderFilter.value);
     });
 
-    // ========== 充装记录数据 ==========
+    // 充装防作弊动态，红的是拦截事件，绿的是正常通过
     const fillingTotal = ref(247);
     const fillEvents = [
       { ok: true, msg: '钢瓶 LPG-0982：扫码校验通过，准予充装（12.5kg，充装枪 #03）', time: '14:28:05' },
@@ -1151,7 +1150,7 @@ createApp({
       { ok: true, msg: '钢瓶 LPG-0876：校验通过，准予充装（12.2kg，充装枪 #01）', time: '11:50:09' }
     ];
 
-    // ========== 政府监管数据 ==========
+    // 政府大屏所需数据：台账条目、网格总数、公司排名
     const govLedger = [
       { title: '东风小区 3-402 浓度超标', desc: '联网报警器 22% 浓度预警，角阀已闭锁', time: '14:32 · 刚刚' },
       { title: '东山办事处 钢瓶超期未检', desc: 'CY-0047 末检 2023-01，已生成整改工单', time: '09:22 · 今日' },
@@ -1163,12 +1162,13 @@ createApp({
     const govChartRef = ref(null);
     let govChartInstance = null;
 
+    // 政府大屏 ECharts：散点气泡图，模拟 36 个网格监测点
     function initGovChart() {
       if (!govChartRef.value) return;
       if (govChartInstance) govChartInstance.dispose();
       govChartInstance = echarts.init(govChartRef.value);
 
-      // 模拟湘乡市 36 个网格监测点坐标
+      // 36 个坐标 [x, y, 大小]，后面 4 个是预警红点
       const zones = [
         [15,20,14],[28,18,10],[42,22,12],[55,15,16],[70,20,10],[82,25,14],
         [10,38,12],[25,35,18],[38,32,14],[52,38,10],[65,34,16],[78,40,12],[88,36,14],
@@ -1229,6 +1229,7 @@ createApp({
       govChartInstance.setOption(option);
     }
 
+    // 切到政府大屏时再初始化图表，不然 DOM 还没渲染
     watch(currentPage, (newPage) => {
       if (newPage === 'government') nextTick(() => initGovChart());
     });
@@ -1240,7 +1241,7 @@ createApp({
       { name: '东山液化气有限公司', score: 81, detail: '商户端覆盖率 76% · 1次超期未闭锁' }
     ];
 
-    // ========== 订单大厅数据 ==========
+    // 订单大厅：看板统计 + 订单列表 + LBS 优化卡片
     const orderStats = reactive({ pending: 12, delivering: 28, done: 156, activeRiders: 22 });
     const orderList = [
       { id: 'OD-0522-0038', addr: '湘乡市东风小区 3-402', spec: 'YSP-15', status: '配送中', rider: '陈建国' },
@@ -1257,7 +1258,7 @@ createApp({
       { title: '紧急订单优先通道', desc: '高危隐患关联订单自动插队，确保整改用气 30 分钟内配送到位', metric: '紧急准时率', value: '100%', up: true }
     ];
 
-    // ========== 营收数据 ==========
+    // 营收报表：SaaS + 保险佣金 + 科目明细
     const revenueData = reactive({
       saasTotal: '486,000', stationCount: 142, arpu: '2,850', churn: 3.2,
       insuranceTotal: '78,400', insuredUsers: 28000
@@ -1274,10 +1275,12 @@ createApp({
     const chartRef = ref(null);
     let chartInstance = null;
 
+    // 工作台 ECharts：折线+柱状混合图，动态日期 + 第4天 markLine
     function initChart() {
       if (!chartRef.value) return;
       chartInstance = echarts.init(chartRef.value);
 
+      // 横轴：根据当前系统时间往前推 7 天
       const dates = [];
       const today = new Date();
       for (let i = 6; i >= 0; i--) {
@@ -1286,6 +1289,7 @@ createApp({
         dates.push((d.getMonth() + 1) + '/' + d.getDate());
       }
 
+      // 7 天数据写死，中间那个 178 是峰值，markLine 会标出来
       const gasData = [132, 156, 141, 178, 163, 152, 148];
       const workerData = [18, 22, 15, 27, 24, 19, 21];
 
@@ -1369,11 +1373,12 @@ createApp({
       };
 
       chartInstance.setOption(option);
+      // 窗口缩放时图表跟着变
       chartResizeHandler = () => { if (chartInstance) chartInstance.resize(); };
       window.addEventListener('resize', chartResizeHandler);
     }
 
-    // ========== 导出所有状态 ==========
+    // 模板里用到的所有变量和方法都得在这儿导出
     return {
       currentPage, expandedParent, menuTree,
       isSkeletonPage, pageTitle, breadcrumb,
