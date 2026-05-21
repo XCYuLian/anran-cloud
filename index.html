@@ -163,54 +163,6 @@ body {
   50% { opacity: 0.9; }
 }
 
-/* 红色预警闪烁覆盖层 */
-.alert-overlay {
-  position: fixed; inset: 0; z-index: 100; pointer-events: none;
-  background: transparent;
-  transition: background 0.6s;
-}
-.alert-overlay.active {
-  background: rgba(239,68,68,0.05);
-  animation: alertPulse 1.2s ease-in-out infinite;
-}
-@keyframes alertPulse {
-  0%, 100% { background: rgba(239,68,68,0.03); }
-  50% { background: rgba(239,68,68,0.09); }
-}
-
-/* 模态框 */
-.alert-modal-backdrop {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(15,23,42,0.55);
-  display: flex; align-items: center; justify-content: center;
-}
-.alert-modal {
-  width: 560px; max-width: 90vw;
-  background: rgba(255,255,255,0.97);
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(239,68,68,0.5);
-  border-radius: 20px; padding: 32px;
-  box-shadow: 0 0 60px rgba(239,68,68,0.2), 0 8px 32px rgba(0,0,0,0.1);
-  animation: modalIn 0.4s ease-out;
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.9) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* 进度条 */
-.prog-bar-track {
-  height: 8px; border-radius: 4px;
-  background: rgba(0,0,0,0.06);
-  overflow: hidden;
-}
-.prog-bar-fill {
-  height: 100%; border-radius: 4px;
-  background: linear-gradient(90deg, #22C55E, #4ADE80);
-  transition: width 1.2s ease-out;
-  box-shadow: 0 0 6px rgba(34,197,94,0.25);
-}
-
 /* 图表容器 */
 .chart-box { width: 100%; height: 360px; }
 
@@ -377,51 +329,6 @@ body {
 <!-- 背景光晕 -->
 <div class="bg-glow"></div>
 
-<!-- 红色预警闪烁覆盖层 -->
-<div :class="['alert-overlay', { active: alertActive }]"></div>
-
-<!-- 预警模态框 -->
-<div v-if="alertActive" class="alert-modal-backdrop" @click.self="dismissAlert">
-  <div class="alert-modal">
-    <div style="text-align:center; font-size:48px; margin-bottom:8px;">⚠️</div>
-    <div style="font-size:13px; color:#DC2626; text-align:center; margin-bottom:16px; letter-spacing:2px; font-weight:700;">
-      ▸ 全域物联紧急响应预警机制 ◂
-    </div>
-    <div style="font-size:15px; font-weight:700; color:#1E293B; text-align:center; line-height:1.6; margin-bottom:20px;">
-      警告：湘乡市东风小区 3 栋 402 室<br>联网报警器触发浓度超标预警<br>
-      <span style="font-size:28px; color:#EF4444;">当前浓度 22%</span>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:12px; color:#475569; margin-bottom:6px;">
-        <i class="fa-solid fa-circle-check" style="color:#22C55E;"></i>
-        自动化指令已下发：智能信息角阀已实施远程物理阻断锁死
-      </div>
-      <div class="prog-bar-track">
-        <div class="prog-bar-fill" :style="{ width: progress1 + '%' }"></div>
-      </div>
-      <div style="font-size:11px; color:#059669; text-align:right; margin-top:2px;" v-if="progress1 >= 100">[已完成]</div>
-    </div>
-    <div style="margin-bottom:24px;">
-      <div style="font-size:12px; color:#475569; margin-bottom:6px;">
-        <i class="fa-solid fa-circle-check" style="color:#22C55E;"></i>
-        分级响应机制启动：紧急工单已秒级推流至网格员（张兵）手机
-      </div>
-      <div class="prog-bar-track">
-        <div class="prog-bar-fill" :style="{ width: progress2 + '%' }"></div>
-      </div>
-      <div style="font-size:11px; color:#059669; text-align:right; margin-top:2px;" v-if="progress2 >= 100">[已完成]</div>
-    </div>
-    <button @click="dismissAlert"
-      style="width:100%; padding:12px; border-radius:10px; border:1px solid rgba(0,0,0,0.1);
-             background:rgba(15,23,42,0.04); color:#475569; font-size:14px; cursor:pointer;
-             transition:all 0.2s;"
-      onmouseover="this.style.background='rgba(15,23,42,0.08)'"
-      onmouseout="this.style.background='rgba(15,23,42,0.04)'">
-      确认知悉，持续监控
-    </button>
-  </div>
-</div>
-
 <!-- 主布局 -->
 <div style="display:flex; height:100vh; position:relative; z-index:1;">
 
@@ -476,7 +383,7 @@ body {
           <span style="color:#64748B;">新增用户 <b style="color:#0F172A;" :class="{ flash: userFlash }">{{ userTotalDisplay }}</b></span>
         </div>
         <!-- 隐藏预警铃铛 -->
-        <i class="fa-solid fa-bell bell-icon" title="系统通知" @dblclick="triggerAlert" style="margin-right:4px;"></i>
+        <i class="fa-solid fa-bell bell-icon" title="系统通知" style="margin-right:4px;"></i>
         <!-- 用户头像 -->
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#E2E8F0,#CBD5E1);display:flex;align-items:center;justify-content:center;font-size:12px;color:#64748B;">管</div>
@@ -1195,41 +1102,6 @@ createApp({
       if (govChartInstance) govChartInstance.dispose();
     });
 
-    // ========== 预警彩蛋 ==========
-    const alertActive = ref(false);
-    const progress1 = ref(0);
-    const progress2 = ref(0);
-    let progTimer1, progTimer2;
-
-    function triggerAlert() {
-      if (alertActive.value) return;
-      alertActive.value = true;
-      progress1.value = 0;
-      progress2.value = 0;
-      let p1 = 0;
-      progTimer1 = setInterval(() => {
-        p1 += 4;
-        progress1.value = Math.min(p1, 100);
-        if (p1 >= 100) clearInterval(progTimer1);
-      }, 45);
-      setTimeout(() => {
-        let p2 = 0;
-        progTimer2 = setInterval(() => {
-          p2 += 5;
-          progress2.value = Math.min(p2, 100);
-          if (p2 >= 100) clearInterval(progTimer2);
-        }, 40);
-      }, 600);
-    }
-
-    function dismissAlert() {
-      clearInterval(progTimer1);
-      clearInterval(progTimer2);
-      alertActive.value = false;
-      progress1.value = 0;
-      progress2.value = 0;
-    }
-
     // ========== 工作台 - 最近预警 ==========
     const recentAlerts = [
       { level: 'high', msg: '湘乡市东风小区3-402 浓度超标22%', time: '14:32' },
@@ -1508,8 +1380,6 @@ createApp({
       navigateTo, toggleParent,
       gasTotal, newUsers, gasFlash, userFlash,
       gasTotalDisplay, userTotalDisplay,
-      alertActive, progress1, progress2,
-      triggerAlert, dismissAlert,
       recentAlerts,
       cylinderList, selectedCylinder, showBlockchain,
       orderFilter, orderStatuses, filteredOrders,
