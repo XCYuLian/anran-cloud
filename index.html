@@ -226,24 +226,32 @@ body {
   background: linear-gradient(180deg, #E2E8F0 0%, #F1F5F9 60%, #CBD5E1 100%);
   position: relative;
 }
-/* 模拟左侧不锈钢双眼灶具底座 */
 .kitchen-bg::before {
   content: ''; position: absolute;
   left: 8%; bottom: 15%; width: 50%; height: 25%;
   background: linear-gradient(135deg, #94A3B8, #64748B);
   border: 2px solid #CBD5E1; border-radius: 8px;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 5;
 }
-/* 模拟右下角铁皮液化气钢瓶 */
 .kitchen-bg::after {
   content: 'LPG'; position: absolute;
   right: 12%; bottom: 5%; width: 20%; height: 45%;
   background: linear-gradient(90deg, #94A3B8 0%, #E2E8F0 30%, #CBD5E1 70%, #64748B 100%);
-  border-radius: 20px 20px 6px 6px;
-  border: 1px solid #94A3B8;
+  border-radius: 20px 20px 6px 6px; border: 1px solid #94A3B8;
   color: rgba(15,23,42,0.15); font-size: 16px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  z-index: 5;
+}
+/* 连接灶台与钢瓶的橙红色燃气软管 */
+.gas-pipe {
+  position: absolute;
+  left: 54%; bottom: 18%; width: 18%; height: 14%;
+  border-bottom: 5px solid #F97316;
+  border-right: 5px solid #F97316;
+  border-radius: 0 0 16px 0;
+  z-index: 2;
 }
 /* 缺陷标注框 */
 .defect-box {
@@ -615,7 +623,9 @@ body {
                 <span style="margin-left:12px;font-size:11px;color:#94A3B8;">拍摄：2026-05-19 15:22 · 送气工 陈建国（工号 GX-0382）</span>
               </div>
               <div class="kitchen-frame">
-                <div class="kitchen-bg"></div>
+                <div class="kitchen-bg">
+                  <div class="gas-pipe"></div>
+                </div>
               </div>
             </div>
             <!-- 右：分析结果 -->
@@ -626,12 +636,14 @@ body {
               </div>
               <div class="kitchen-frame">
                 <div class="kitchen-bg">
+                  <div class="gas-pipe"></div>
+
                   <div class="defect-box" style="left: 6%; bottom: 12%; width: 54%; height: 32%; z-index: 10;">
                     <span class="defect-tag" style="top: -24px; left: 4px; background: rgba(239, 68, 68, 0.95); white-space: normal; width: 220px; line-height: 1.3;">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
                   </div>
 
-                  <div class="defect-box" style="left: 48%; bottom: 6%; width: 20%; height: 12%; z-index: 20;">
-                    <span class="defect-tag" style="bottom: -24px; top: auto; left: -20px; background: rgba(239, 68, 68, 0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">[!] 软管老旧龟裂，疑似微漏高危风险</span>
+                  <div class="defect-box" style="left: 50%; bottom: 14%; width: 24%; height: 20%; z-index: 20;">
+                    <span class="defect-tag" style="bottom: -24px; top: auto; left: 50%; transform: translateX(-50%); background: rgba(239, 68, 68, 0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">[!] 软管老旧龟裂，疑似微漏高危风险</span>
                   </div>
 
                   <div class="defect-box" style="right: 10%; bottom: 3%; width: 24%; height: 49%; z-index: 10;">
