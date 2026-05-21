@@ -223,7 +223,7 @@ body {
 }
 .kitchen-bg {
   width: 100%; height: 100%;
-  background-image: url('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80');
+  background-image: url('https://images.unsplash.com/photo-1599619351208-3e5c83980ae9?auto=format&fit=crop&w=800&q=80');
   background-size: cover;
   background-position: center;
   position: relative;
@@ -242,12 +242,15 @@ body {
   50% { border-color: #DC2626; box-shadow: 0 0 16px rgba(239,68,68,0.65); }
 }
 .defect-tag {
-  position: absolute; top: -22px; left: 0;
-  background: rgba(239,68,68,0.92);
-  color: #fff; font-size: 10px; font-weight: 700;
-  padding: 2px 8px; border-radius: 3px;
+  position: absolute;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
   white-space: nowrap;
   letter-spacing: 0.5px;
+  pointer-events: none;
 }
 
 /* 区块链存证卡片 — 浅色安全质感 */
@@ -298,26 +301,6 @@ body {
   transition: color 0.2s;
 }
 .bell-icon:hover { color: rgba(15,23,42,0.55); }
-
-/* 政务大屏网格地图 */
-.gov-grid {
-  position: relative;
-  background: rgba(248,250,252,0.5);
-  border: 1px solid rgba(226,232,240,0.6);
-  border-radius: 12px; overflow: hidden;
-}
-.gov-dot {
-  position: absolute;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #0EA5E9;
-  animation: dotBreath 2.5s ease-in-out infinite;
-}
-.gov-dot.warn { background: #EF4444; animation-delay: 0.6s; }
-@keyframes dotBreath {
-  0%, 100% { opacity: 0.25; box-shadow: 0 0 3px rgba(14,165,233,0.2); }
-  50% { opacity: 1; box-shadow: 0 0 10px rgba(14,165,233,0.5); }
-}
 
 /* 合规红黑榜进度条 */
 .rank-bar {
@@ -625,16 +608,20 @@ body {
                 <span style="margin-left:12px;font-size:11px;color:#EF4444;">● 3 处隐患特征检出</span>
               </div>
               <div class="kitchen-frame">
-                <div class="kitchen-bg" style="position:relative;">
-                  <div class="defect-box" style="left:17%;top:30%;width:41%;height:20%;">
-                    <span class="defect-tag">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
+                <div class="kitchen-bg" style="position: relative;">
+
+                  <div class="defect-box" style="left: 12%; top: 48%; width: 38%; height: 24%; z-index: 10;">
+                    <span class="defect-tag" style="top: -24px; background: rgba(239, 68, 68, 0.95);">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
                   </div>
-                  <div class="defect-box" style="left:57%;top:54%;width:20%;height:8%;">
-                    <span class="defect-tag" style="top:auto;bottom:-20px;">[!] 软管老化迹象，疑似微漏风险</span>
+
+                  <div class="defect-box" style="left: 45%; top: 72%; width: 28%; height: 10%; z-index: 20;">
+                    <span class="defect-tag" style="bottom: -24px; top: auto; background: rgba(239, 68, 68, 0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">[!] 软管老旧龟裂，疑似微漏高危风险</span>
                   </div>
-                  <div class="defect-box" style="right:8%;bottom:12%;width:22%;height:36%;">
-                    <span class="defect-tag">[!] 钢瓶超期未检（末检 2023-01）</span>
+
+                  <div class="defect-box" style="left: 72%; top: 58%; width: 22%; height: 35%; z-index: 10;">
+                    <span class="defect-tag" style="top: -24px; background: rgba(239, 68, 68, 0.95);">[!] 钢瓶超期未检（末检 2023-01）</span>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -863,22 +850,7 @@ body {
             <div style="font-size:10px;color:#94A3B8;margin-bottom:12px;">
               <span class="live-dot"></span> 物联设备在线 2,847 台 · 覆盖 {{ govGridTotal }} 个网格
             </div>
-            <div class="gov-grid" style="flex:1;min-height:280px;">
-              <!-- CSS 网格线 -->
-              <div style="position:absolute;inset:0;background:
-                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(226,232,240,0.5) 39px, rgba(226,232,240,0.5) 40px),
-                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(226,232,240,0.5) 39px, rgba(226,232,240,0.5) 40px);"></div>
-              <!-- 呼吸灯网格点 -->
-              <div v-for="d in govDots" :key="d.id"
-                   :class="['gov-dot', d.warn ? 'warn' : '']"
-                   :style="{ left: d.x + '%', top: d.y + '%', animationDelay: d.delay + 's' }"></div>
-              <!-- 中心图例 -->
-              <div style="position:absolute;bottom:10px;right:14px;font-size:10px;color:#94A3B8;
-                display:flex;gap:10px;background:rgba(255,255,255,0.8);padding:4px 10px;border-radius:6px;">
-                <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#0EA5E9;margin-right:3px;"></span>正常</span>
-                <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#EF4444;margin-right:3px;"></span>预警</span>
-              </div>
-            </div>
+            <div ref="govChartRef" style="flex:1;min-height:280px;width:100%;"></div>
           </div>
 
           <!-- 右侧：企业合规红黑榜 -->
@@ -1069,7 +1041,7 @@ body {
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script>
-const { createApp, ref, computed, onMounted, onUnmounted, nextTick, reactive } = Vue;
+const { createApp, ref, computed, onMounted, onUnmounted, nextTick, reactive, watch } = Vue;
 
 createApp({
   setup() {
@@ -1193,6 +1165,7 @@ createApp({
       clearInterval(userTimer);
       if (chartResizeHandler) window.removeEventListener('resize', chartResizeHandler);
       if (chartInstance) chartInstance.dispose();
+      if (govChartInstance) govChartInstance.dispose();
     });
 
     // ========== 预警彩蛋 ==========
@@ -1288,16 +1261,84 @@ createApp({
       { title: '工业园A区 充装量异常', desc: 'CY-0091 充装数据偏离 ±15%，启动复核', time: '05-20 16:30' }
     ];
     const govGridTotal = 36;
-    const govDots = Array.from({ length: 42 }, (_, i) => ({
-      id: i, x: 5 + (i * 17) % 90, y: 5 + (i * 11) % 88,
-      warn: [2, 7, 15, 28, 35].includes(i),
-      delay: (i % 5) * 0.5
-    }));
+    const govChartRef = ref(null);
+    let govChartInstance = null;
+
+    function initGovChart() {
+      if (!govChartRef.value) return;
+      if (govChartInstance) govChartInstance.dispose();
+      govChartInstance = echarts.init(govChartRef.value);
+
+      // 模拟湘乡市 36 个网格监测点坐标
+      const zones = [
+        [15,20,14],[28,18,10],[42,22,12],[55,15,16],[70,20,10],[82,25,14],
+        [10,38,12],[25,35,18],[38,32,14],[52,38,10],[65,34,16],[78,40,12],[88,36,14],
+        [18,52,10],[32,48,14],[45,52,18],[58,48,12],[72,52,14],[85,48,10],
+        [12,68,14],[28,64,12],[42,68,16],[55,64,14],[70,68,12],[82,64,10],
+        [20,82,12],[35,78,14],[50,82,16],[65,78,12],[78,82,14],
+        [8,25,12],[90,55,10],[25,15,10],[68,82,12],[52,20,12],[15,78,10]
+      ];
+      const normal = zones.filter((_, i) => ![3, 10, 19, 30].includes(i));
+      const warn = zones.filter((_, i) => [3, 10, 19, 30].includes(i));
+
+      const option = {
+        grid: { left: 8, right: 8, top: 8, bottom: 8 },
+        xAxis: { show: false, min: 0, max: 100 },
+        yAxis: { show: false, min: 0, max: 100 },
+        series: [
+          {
+            type: 'scatter', data: normal,
+            symbolSize: v => v[2],
+            itemStyle: {
+              color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                { offset: 0, color: 'rgba(14,165,233,0.7)' },
+                { offset: 1, color: 'rgba(14,165,233,0.05)' }
+              ]),
+              shadowBlur: 6, shadowColor: 'rgba(14,165,233,0.3)'
+            },
+            emphasis: { scale: 1.6, itemStyle: { shadowBlur: 16 } }
+          },
+          {
+            type: 'scatter', data: warn,
+            symbolSize: v => v[2] + 4,
+            itemStyle: {
+              color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                { offset: 0, color: 'rgba(239,68,68,0.8)' },
+                { offset: 1, color: 'rgba(239,68,68,0.08)' }
+              ]),
+              shadowBlur: 12, shadowColor: 'rgba(239,68,68,0.5)'
+            },
+            emphasis: { scale: 1.8, itemStyle: { shadowBlur: 24 } }
+          },
+          // 网格线（隐式绘制几条横纵参考线）
+          ...['30%','55%','75%'].map(y => ({
+            type: 'line', markLine: {
+              silent: true, symbol: 'none', animation: false,
+              lineStyle: { color: 'rgba(226,232,240,0.4)', type: 'dashed', width: 0.8 },
+              data: [{ yAxis: parseFloat(y) }]
+            }
+          })),
+          ...['25%','50%','70%'].map(x => ({
+            type: 'line', markLine: {
+              silent: true, symbol: 'none', animation: false,
+              lineStyle: { color: 'rgba(226,232,240,0.4)', type: 'dashed', width: 0.8 },
+              data: [{ xAxis: parseFloat(x) }]
+            }
+          }))
+        ]
+      };
+      govChartInstance.setOption(option);
+    }
+
+    watch(currentPage, (newPage) => {
+      if (newPage === 'government') nextTick(() => initGovChart());
+    });
+
     const govCompanies = [
       { name: '民福能源有限公司', score: 96, detail: '智能角阀安装率 100% · 安检覆盖率 98%' },
       { name: '中源燃气股份公司', score: 88, detail: '角阀安装率 92% · 安检覆盖率 85% · 1 次超期未整改' },
       { name: '湘乡市民生气站', score: 94, detail: '角阀安装率 100% · 安检覆盖率 93%' },
-      { name: '东山液化气有限公司', score: 81, detail: '角阀安装率 76% · 安检覆盖率 71% · 3 次预警未闭环' }
+      { name: '东山液化气有限公司', score: 81, detail: '商户端覆盖率 76% · 1次超期未闭锁' }
     ];
 
     // ========== 订单大厅数据 ==========
@@ -1448,7 +1489,7 @@ createApp({
       chartRef,
       isLoading, showLoading,
       fillingTotal, fillEvents,
-      govLedger, govGridTotal, govDots, govCompanies,
+      govLedger, govGridTotal, govChartRef, govCompanies,
       orderStats, orderList, lbsCards,
       revenueData, revenueItems
     };
