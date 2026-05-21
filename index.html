@@ -223,10 +223,27 @@ body {
 }
 .kitchen-bg {
   width: 100%; height: 100%;
-  background-image: url('https://images.unsplash.com/photo-1599619351208-3e5c83980ae9?auto=format&fit=crop&w=800&q=80');
-  background-size: cover;
-  background-position: center;
+  background: linear-gradient(180deg, #E2E8F0 0%, #F1F5F9 60%, #CBD5E1 100%);
   position: relative;
+}
+/* 模拟左侧不锈钢双眼灶具底座 */
+.kitchen-bg::before {
+  content: ''; position: absolute;
+  left: 8%; bottom: 15%; width: 50%; height: 25%;
+  background: linear-gradient(135deg, #94A3B8, #64748B);
+  border: 2px solid #CBD5E1; border-radius: 8px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1);
+}
+/* 模拟右下角铁皮液化气钢瓶 */
+.kitchen-bg::after {
+  content: 'LPG'; position: absolute;
+  right: 12%; bottom: 5%; width: 20%; height: 45%;
+  background: linear-gradient(90deg, #94A3B8 0%, #E2E8F0 30%, #CBD5E1 70%, #64748B 100%);
+  border-radius: 20px 20px 6px 6px;
+  border: 1px solid #94A3B8;
+  color: rgba(15,23,42,0.15); font-size: 16px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 /* 缺陷标注框 */
 .defect-box {
@@ -608,20 +625,18 @@ body {
                 <span style="margin-left:12px;font-size:11px;color:#EF4444;">● 3 处隐患特征检出</span>
               </div>
               <div class="kitchen-frame">
-                <div class="kitchen-bg" style="position: relative;">
-
-                  <div class="defect-box" style="left: 12%; top: 48%; width: 38%; height: 24%; z-index: 10;">
-                    <span class="defect-tag" style="top: -24px; background: rgba(239, 68, 68, 0.95);">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
+                <div class="kitchen-bg">
+                  <div class="defect-box" style="left: 6%; bottom: 12%; width: 54%; height: 32%; z-index: 10;">
+                    <span class="defect-tag" style="top: -24px; left: 4px; background: rgba(239, 68, 68, 0.95); white-space: normal; width: 220px; line-height: 1.3;">[!] 特征识别：该灶具缺乏熄火保护针，判定不合格</span>
                   </div>
 
-                  <div class="defect-box" style="left: 45%; top: 72%; width: 28%; height: 10%; z-index: 20;">
-                    <span class="defect-tag" style="bottom: -24px; top: auto; background: rgba(239, 68, 68, 0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">[!] 软管老旧龟裂，疑似微漏高危风险</span>
+                  <div class="defect-box" style="left: 48%; bottom: 6%; width: 20%; height: 12%; z-index: 20;">
+                    <span class="defect-tag" style="bottom: -24px; top: auto; left: -20px; background: rgba(239, 68, 68, 0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">[!] 软管老旧龟裂，疑似微漏高危风险</span>
                   </div>
 
-                  <div class="defect-box" style="left: 72%; top: 58%; width: 22%; height: 35%; z-index: 10;">
-                    <span class="defect-tag" style="top: -24px; background: rgba(239, 68, 68, 0.95);">[!] 钢瓶超期未检（末检 2023-01）</span>
+                  <div class="defect-box" style="right: 10%; bottom: 3%; width: 24%; height: 49%; z-index: 10;">
+                    <span class="defect-tag" style="top: -24px; right: 0; left: auto; background: rgba(239, 68, 68, 0.95);">[!] 钢瓶超期未检（末检 2023-01）</span>
                   </div>
-
                 </div>
               </div>
             </div>
