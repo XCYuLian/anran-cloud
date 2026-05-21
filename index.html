@@ -299,6 +299,41 @@ body {
 }
 .bell-icon:hover { color: rgba(15,23,42,0.55); }
 
+/* 政务大屏网格地图 */
+.gov-grid {
+  position: relative;
+  background: rgba(248,250,252,0.5);
+  border: 1px solid rgba(226,232,240,0.6);
+  border-radius: 12px; overflow: hidden;
+}
+.gov-dot {
+  position: absolute;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #0EA5E9;
+  animation: dotBreath 2.5s ease-in-out infinite;
+}
+.gov-dot.warn { background: #EF4444; animation-delay: 0.6s; }
+@keyframes dotBreath {
+  0%, 100% { opacity: 0.25; box-shadow: 0 0 3px rgba(14,165,233,0.2); }
+  50% { opacity: 1; box-shadow: 0 0 10px rgba(14,165,233,0.5); }
+}
+
+/* 合规红黑榜进度条 */
+.rank-bar {
+  height: 10px; border-radius: 5px;
+  background: rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.rank-fill { height: 100%; border-radius: 5px; transition: width 0.6s; }
+
+/* 滚动台账 */
+.scroll-ledger {
+  max-height: 200px; overflow-y: auto;
+}
+.scroll-ledger::-webkit-scrollbar { width: 3px; }
+.scroll-ledger::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 2px; }
+
 /* 加载遮罩 */
 .loading-overlay {
   position: fixed; inset: 0; z-index: 50;
@@ -743,15 +778,48 @@ body {
       </div>
 
       <!-- ============================================================ -->
-      <!-- 智能充装记录 -->
+      <!-- 智能充装记录（增强版） -->
       <!-- ============================================================ -->
       <div v-if="currentPage === 'filling-record'">
-        <div class="glass-card" style="padding:20px 24px;">
-          <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">⚡ 智能充装记录</div>
-          <div style="font-size:11px;color:#94A3B8;margin-bottom:16px;">充装枪物联数据自动采集 · 充前充后扫码核验</div>
+        <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">⚡ 智能充装枪联锁台账</div>
+          <div style="font-size:11px;color:#94A3B8;margin-bottom:16px;">充装枪物联数据自动采集 · 充前充后扫码核验 · 电磁阀联锁防作弊</div>
+
+          <!-- 今日安全充装率 -->
+          <div style="display:flex;gap:16px;margin-bottom:18px;">
+            <div class="kpi-card" style="flex:1;text-align:center;border-color:rgba(5,150,105,0.25);">
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">今日安全充装率</div>
+              <div style="font-size:36px;font-weight:700;color:#059669;">100%</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:2px;">{{ fillingTotal }} 次充装 · 0 次违规</div>
+            </div>
+            <div class="kpi-card" style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">联锁拦截次数</div>
+              <div style="font-size:36px;font-weight:700;color:#EF4444;">3</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:2px;">今日电磁阀强行锁死</div>
+            </div>
+            <div class="kpi-card" style="flex:1;text-align:center;">
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">充装枪在线数</div>
+              <div style="font-size:36px;font-weight:700;color:#0EA5E9;">12</div>
+              <div style="font-size:11px;color:#94A3B8;margin-top:2px;">全部在线 · 采集正常</div>
+            </div>
+          </div>
+
+          <!-- 防作弊动态 -->
+          <div style="font-size:13px;font-weight:600;color:#0F172A;margin-bottom:10px;">🔍 充装防作弊实时动态</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+            <div v-for="(ev, i) in fillEvents" :key="i"
+                 :style="{padding:'10px 14px',borderRadius:'8px',fontSize:'12px',
+                   background: ev.ok ? 'rgba(240,253,244,0.6)' : 'rgba(254,242,242,0.6)',
+                   border: '1px solid ' + (ev.ok ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)')}">
+              <span :style="{color: ev.ok ? '#059669' : '#EF4444', fontWeight: 700}">{{ ev.ok ? '✓' : '✗' }}</span>
+              <span style="color:#334155;"> {{ ev.msg }}</span>
+              <span style="color:#94A3B8;font-size:11px;margin-left:8px;">— {{ ev.time }}</span>
+            </div>
+          </div>
+
           <table style="width:100%;font-size:12px;border-collapse:collapse;">
             <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-              <th style="padding:10px 8px;">记录 ID</th><th style="padding:10px 8px;">钢瓶编码</th><th style="padding:10px 8px;">充装量(kg)</th><th style="padding:10px 8px;">充装时间</th><th style="padding:10px 8px;">操作员</th><th style="padding:10px 8px;">存证</th>
+              <th style="padding:10px 8px;">记录 ID</th><th style="padding:10px 8px;">钢瓶编码</th><th style="padding:10px 8px;">充装量(kg)</th><th style="padding:10px 8px;">充装时间</th><th style="padding:10px 8px;">操作员</th><th style="padding:10px 8px;">校验结果</th><th style="padding:10px 8px;">存证</th>
             </tr></thead>
             <tbody>
               <tr v-for="i in 5" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
@@ -760,10 +828,214 @@ body {
                 <td style="padding:10px 8px;color:#334155;">{{ 12.5 - i*0.2 }}</td>
                 <td style="padding:10px 8px;color:#334155;">2026-05-20 0{{ i }}:{{ 10+i*3 }}:00</td>
                 <td style="padding:10px 8px;color:#334155;">操作员-{{ i }}</td>
+                <td style="padding:10px 8px;"><span style="color:#059669;font-size:11px;">✓ 校验通过</span></td>
                 <td style="padding:10px 8px;color:#059669;">● 区块链已存证</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 政府监管大屏接口 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'government'">
+        <div style="display:grid;grid-template-columns:280px 1fr 280px;gap:16px;height:100%;">
+          <!-- 左侧：政务高危穿透台账 -->
+          <div class="glass-card" style="padding:16px 18px;display:flex;flex-direction:column;">
+            <div style="font-size:13px;font-weight:700;color:#EF4444;margin-bottom:4px;">🔴 政务高危穿透台账</div>
+            <div style="font-size:10px;color:#94A3B8;margin-bottom:12px;">市级监管部门 · 实时隐患穿透</div>
+            <div class="scroll-ledger" style="flex:1;">
+              <div v-for="(item, i) in govLedger" :key="i"
+                   style="padding:8px 10px;margin-bottom:6px;border-radius:6px;
+                          background:rgba(254,242,242,0.5);border:1px solid rgba(239,68,68,0.12);
+                          font-size:11px;line-height:1.5;">
+                <div style="color:#EF4444;font-weight:700;margin-bottom:2px;">⚠ {{ item.title }}</div>
+                <div style="color:#334155;">{{ item.desc }}</div>
+                <div style="color:#94A3B8;font-size:10px;margin-top:2px;">{{ item.time }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 中间：数字化燃气态势网格版图 -->
+          <div class="glass-card" style="padding:16px 18px;display:flex;flex-direction:column;">
+            <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:4px;">🗺️ 湘乡市全域数字化燃气态势底座</div>
+            <div style="font-size:10px;color:#94A3B8;margin-bottom:12px;">
+              <span class="live-dot"></span> 物联设备在线 2,847 台 · 覆盖 {{ govGridTotal }} 个网格
+            </div>
+            <div class="gov-grid" style="flex:1;min-height:280px;">
+              <!-- CSS 网格线 -->
+              <div style="position:absolute;inset:0;background:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(226,232,240,0.5) 39px, rgba(226,232,240,0.5) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(226,232,240,0.5) 39px, rgba(226,232,240,0.5) 40px);"></div>
+              <!-- 呼吸灯网格点 -->
+              <div v-for="d in govDots" :key="d.id"
+                   :class="['gov-dot', d.warn ? 'warn' : '']"
+                   :style="{ left: d.x + '%', top: d.y + '%', animationDelay: d.delay + 's' }"></div>
+              <!-- 中心图例 -->
+              <div style="position:absolute;bottom:10px;right:14px;font-size:10px;color:#94A3B8;
+                display:flex;gap:10px;background:rgba(255,255,255,0.8);padding:4px 10px;border-radius:6px;">
+                <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#0EA5E9;margin-right:3px;"></span>正常</span>
+                <span><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#EF4444;margin-right:3px;"></span>预警</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：企业合规红黑榜 -->
+          <div class="glass-card" style="padding:16px 18px;display:flex;flex-direction:column;">
+            <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:4px;">📋 企业合规红黑榜</div>
+            <div style="font-size:10px;color:#94A3B8;margin-bottom:12px;">市燃气办季度安全考评排名</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+              <div v-for="(co, i) in govCompanies" :key="i"
+                   style="padding:12px 14px;border-radius:10px;"
+                   :style="{ background: co.score >= 90 ? 'rgba(240,253,244,0.5)' : 'rgba(254,242,242,0.3)',
+                             border: '1px solid ' + (co.score >= 90 ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.1)') }">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span style="font-size:12px;font-weight:600;color:#0F172A;">{{ co.name }}</span>
+                  <span :style="{fontSize:'14px',fontWeight:700,color:co.score>=90?'#059669':'#D97706'}">{{ co.score }}%</span>
+                </div>
+                <div class="rank-bar">
+                  <div class="rank-fill"
+                       :style="{ width: co.score + '%', background: co.score >= 90
+                         ? 'linear-gradient(90deg, #22C55E, #4ADE80)'
+                         : 'linear-gradient(90deg, #FBBF24, #F59E0B)' }"></div>
+                </div>
+                <div style="font-size:10px;color:#94A3B8;margin-top:3px;">{{ co.detail }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 实时订单大厅 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'order-hall'">
+        <!-- KPI 看板 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;">
+          <div class="kpi-card" style="text-align:center;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">📥 待派单</div>
+            <div style="font-size:36px;font-weight:700;color:#D97706;">{{ orderStats.pending }}</div>
+            <div style="font-size:11px;color:#94A3B8;">较上小时 +2</div>
+          </div>
+          <div class="kpi-card" style="text-align:center;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">🛵 配送中</div>
+            <div style="font-size:36px;font-weight:700;color:#0EA5E9;">{{ orderStats.delivering }}</div>
+            <div style="font-size:11px;color:#94A3B8;">{{ orderStats.activeRiders }} 名骑手在途</div>
+          </div>
+          <div class="kpi-card" style="text-align:center;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">✅ 已送达</div>
+            <div style="font-size:36px;font-weight:700;color:#059669;">{{ orderStats.done }}</div>
+            <div style="font-size:11px;color:#94A3B8;">准时率 97.4%</div>
+          </div>
+          <div class="kpi-card" style="text-align:center;">
+            <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">⚡ 平均响应</div>
+            <div style="font-size:36px;font-weight:700;color:#7C3AED;">8.2<span style="font-size:16px;">min</span></div>
+            <div style="font-size:11px;color:#059669;">▼ 较昨日快 1.3min</div>
+          </div>
+        </div>
+
+        <!-- 双栏：订单列表 + LBS 路径优化 -->
+        <div style="display:grid;grid-template-columns:1fr 360px;gap:16px;">
+          <!-- 订单列表 -->
+          <div class="glass-card" style="padding:18px 22px;">
+            <div style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:12px;">📋 实时订单大厅</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+              <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
+                <th style="padding:10px 8px;">订单号</th><th style="padding:10px 8px;">客户地址</th><th style="padding:10px 8px;">规格</th><th style="padding:10px 8px;">状态</th><th style="padding:10px 8px;">骑手</th>
+              </tr></thead>
+              <tbody>
+                <tr v-for="(o, i) in orderList" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                  <td style="padding:10px 8px;color:#0284C7;font-weight:600;">{{ o.id }}</td>
+                  <td style="padding:10px 8px;color:#334155;">{{ o.addr }}</td>
+                  <td style="padding:10px 8px;color:#334155;">{{ o.spec }}</td>
+                  <td style="padding:10px 8px;">
+                    <span :style="{padding:'2px 8px',borderRadius:'4px',fontSize:'11px',color:'#fff',
+                      background: o.status==='配送中'?'#0EA5E9': o.status==='待派单'?'#D97706':'#059669'}">{{ o.status }}</span>
+                  </td>
+                  <td style="padding:10px 8px;color:#334155;">{{ o.rider || '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- LBS 路径优化卡片 -->
+          <div class="glass-card" style="padding:18px 22px;display:flex;flex-direction:column;">
+            <div style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:4px;">🧭 LBS自动派单 · 路径优化</div>
+            <div style="font-size:10px;color:#94A3B8;margin-bottom:14px;">运力调度引擎 · 实时路径规划</div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+              <div v-for="(card, i) in lbsCards" :key="i"
+                   style="padding:12px 14px;border-radius:8px;
+                          background:rgba(14,165,233,0.04);border:1px solid rgba(14,165,233,0.1);">
+                <div style="font-size:12px;font-weight:600;color:#0F172A;margin-bottom:4px;">{{ card.title }}</div>
+                <div style="font-size:11px;color:#64748B;line-height:1.4;">{{ card.desc }}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+                  <span style="font-size:11px;color:#94A3B8;">{{ card.metric }}</span>
+                  <span :style="{fontSize:'13px',fontWeight:700,color:card.up?'#059669':'#EF4444'}">{{ card.value }}</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:#94A3B8;text-align:center;margin-top:10px;">
+              <span class="live-dot"></span> LBS引擎运行中 · 覆盖 {{ orderStats.activeRiders }} 名骑手
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- 营收数据报表 -->
+      <!-- ============================================================ -->
+      <div v-if="currentPage === 'revenue-report'">
+        <div class="glass-card" style="padding:20px 24px;margin-bottom:20px;">
+          <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">💰 营收数据报表 — 商业造血看板</div>
+          <div style="font-size:11px;color:#94A3B8;margin-bottom:20px;">SaaS订阅 + 安全保险佣金 · 财务口径严谨透明</div>
+
+          <!-- 核心收入双栏 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div style="padding:20px 24px;border-radius:14px;
+                        background:rgba(14,165,233,0.04);border:1px solid rgba(14,165,233,0.12);">
+              <div style="font-size:12px;color:#64748B;margin-bottom:6px;">📦 SaaS 订阅年费流水</div>
+              <div style="font-size:32px;font-weight:700;color:#0284C7;margin-bottom:4px;">¥{{ revenueData.saasTotal }}</div>
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:12px;">{{ revenueData.stationCount }} 个站点 · ¥3,000-8,000/站/年</div>
+              <div class="rank-bar" style="margin-bottom:4px;">
+                <div class="rank-fill" style="width:78%;background:linear-gradient(90deg,#0EA5E9,#6366F1);"></div>
+              </div>
+              <div style="font-size:10px;color:#94A3B8;">年度目标完成率 78%</div>
+            </div>
+            <div style="padding:20px 24px;border-radius:14px;
+                        background:rgba(5,150,105,0.04);border:1px solid rgba(5,150,105,0.12);">
+              <div style="font-size:12px;color:#64748B;margin-bottom:6px;">🛡️ 商业安全保险佣金抽成</div>
+              <div style="font-size:32px;font-weight:700;color:#059669;margin-bottom:4px;">¥{{ revenueData.insuranceTotal }}</div>
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:12px;">{{ revenueData.insuredUsers }} 户参保 · ¥2.8/户/年</div>
+              <div class="rank-bar" style="margin-bottom:4px;">
+                <div class="rank-fill" style="width:62%;background:linear-gradient(90deg,#22C55E,#4ADE80);"></div>
+              </div>
+              <div style="font-size:10px;color:#94A3B8;">覆盖率 62% · 目标 80%</div>
+            </div>
+          </div>
+
+          <!-- 财务明细表 -->
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
+              <th style="padding:10px 8px;">科目</th><th style="padding:10px 8px;">本期发生</th><th style="padding:10px 8px;">环比</th><th style="padding:10px 8px;">累计</th><th style="padding:10px 8px;">占比</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="(r, i) in revenueItems" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                <td style="padding:10px 8px;color:#0F172A;font-weight:600;">{{ r.name }}</td>
+                <td style="padding:10px 8px;color:#334155;">¥{{ r.current }}</td>
+                <td style="padding:10px 8px;" :style="{color: r.mom > 0 ? '#059669' : '#EF4444'}">{{ r.mom > 0 ? '▲' : '▼' }} {{ Math.abs(r.mom) }}%</td>
+                <td style="padding:10px 8px;color:#334155;">¥{{ r.total }}</td>
+                <td style="padding:10px 8px;color:#64748B;">{{ r.ratio }}%</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top:14px;padding:12px 16px;border-radius:8px;
+                      background:rgba(240,253,244,0.4);border:1px solid rgba(34,197,94,0.12);
+                      display:flex;align-items:center;gap:10px;font-size:12px;">
+            <span style="color:#059669;font-weight:700;">✓ 财务健康</span>
+            <span style="color:#334155;">月均 ARPU ¥{{ revenueData.arpu }} · 客户流失率 {{ revenueData.churn }}% · 自我造血闭环已成型</span>
+          </div>
         </div>
       </div>
 
@@ -854,9 +1126,9 @@ createApp({
     };
 
     const skeletonPages = [
-      'government', 'cylinder-archive', 'scrap-cylinder',
-      'order-hall', 'lbs-dispatch', 'customer-archive', 'family-accounts',
-      'finance-reconcile', 'revenue-report', 'staff-mgmt', 'station-config'
+      'cylinder-archive', 'scrap-cylinder',
+      'lbs-dispatch', 'customer-archive', 'family-accounts',
+      'finance-reconcile', 'staff-mgmt', 'station-config'
     ];
 
     const isSkeletonPage = computed(() => skeletonPages.includes(currentPage.value));
@@ -997,6 +1269,67 @@ createApp({
       return allOrders.filter(o => o._filter === orderFilter.value);
     });
 
+    // ========== 充装记录数据 ==========
+    const fillingTotal = ref(247);
+    const fillEvents = [
+      { ok: true, msg: '钢瓶 LPG-0982：扫码校验通过，准予充装（12.5kg，充装枪 #03）', time: '14:28:05' },
+      { ok: false, msg: '钢瓶 LPG-5541：检测为报废瓶（末检超期 482 天），充装枪电磁阀已强行锁死拦截', time: '13:55:31' },
+      { ok: true, msg: '钢瓶 LPG-1203：校验通过，准予充装（11.8kg，充装枪 #07）', time: '13:42:17' },
+      { ok: false, msg: '钢瓶 LPG-3310：RFID 芯片读取异常，疑似非法倒气瓶，已自动锁死并上报', time: '12:18:44' },
+      { ok: true, msg: '钢瓶 LPG-0876：校验通过，准予充装（12.2kg，充装枪 #01）', time: '11:50:09' }
+    ];
+
+    // ========== 政府监管数据 ==========
+    const govLedger = [
+      { title: '东风小区 3-402 浓度超标', desc: '联网报警器 22% 浓度预警，角阀已闭锁', time: '14:32 · 刚刚' },
+      { title: '东山办事处 钢瓶超期未检', desc: 'CY-0047 末检 2023-01，已生成整改工单', time: '09:22 · 今日' },
+      { title: '城西液化气站 角阀低电量', desc: 'VL-0182 电量 8%，已通知维保更换', time: '昨日 13:15' },
+      { title: '城南餐饮街 报警器离线', desc: 'AL-0291 超时未上报心跳，疑似人为破坏', time: '昨日 11:48' },
+      { title: '工业园A区 充装量异常', desc: 'CY-0091 充装数据偏离 ±15%，启动复核', time: '05-20 16:30' }
+    ];
+    const govGridTotal = 36;
+    const govDots = Array.from({ length: 42 }, (_, i) => ({
+      id: i, x: 5 + (i * 17) % 90, y: 5 + (i * 11) % 88,
+      warn: [2, 7, 15, 28, 35].includes(i),
+      delay: (i % 5) * 0.5
+    }));
+    const govCompanies = [
+      { name: '民福能源有限公司', score: 96, detail: '智能角阀安装率 100% · 安检覆盖率 98%' },
+      { name: '中源燃气股份公司', score: 88, detail: '角阀安装率 92% · 安检覆盖率 85% · 1 次超期未整改' },
+      { name: '湘乡市民生气站', score: 94, detail: '角阀安装率 100% · 安检覆盖率 93%' },
+      { name: '东山液化气有限公司', score: 81, detail: '角阀安装率 76% · 安检覆盖率 71% · 3 次预警未闭环' }
+    ];
+
+    // ========== 订单大厅数据 ==========
+    const orderStats = reactive({ pending: 12, delivering: 28, done: 156, activeRiders: 22 });
+    const orderList = [
+      { id: 'OD-0522-0038', addr: '湘乡市东风小区 3-402', spec: 'YSP-15', status: '配送中', rider: '陈建国' },
+      { id: 'OD-0522-0037', addr: '城南餐饮街 8 号', spec: 'YSP-50', status: '配送中', rider: '李刚' },
+      { id: 'OD-0522-0036', addr: '东山办事处食堂', spec: 'YSP-15', status: '待派单', rider: null },
+      { id: 'OD-0522-0035', addr: '城西液化气站自提', spec: 'YSP-50', status: '已送达', rider: '王建国' },
+      { id: 'OD-0522-0034', addr: '工业园 A 区 12 栋', spec: 'YSP-15', status: '配送中', rider: '张兵' },
+      { id: 'OD-0522-0033', addr: '湘乡市一中食堂', spec: 'YSP-50', status: '待派单', rider: null },
+      { id: 'OD-0522-0032', addr: '东风小区 7 栋 102', spec: 'YSP-15', status: '已送达', rider: '陈建国' }
+    ];
+    const lbsCards = [
+      { title: '全局路径优化引擎', desc: '基于实时交通与骑手位置，动态规划最优配送序列，减少空驶里程', metric: '日均节省运力', value: '18.6 公里', up: true },
+      { title: '运力负载均衡', desc: '自动将超负荷区域的待派订单分流至空闲骑手，平衡全网响应时效', metric: '负载方差', value: '↓ 34%', up: true },
+      { title: '紧急订单优先通道', desc: '高危隐患关联订单自动插队，确保整改用气 30 分钟内配送到位', metric: '紧急准时率', value: '100%', up: true }
+    ];
+
+    // ========== 营收数据 ==========
+    const revenueData = reactive({
+      saasTotal: '486,000', stationCount: 142, arpu: '2,850', churn: 3.2,
+      insuranceTotal: '78,400', insuredUsers: 28000
+    });
+    const revenueItems = [
+      { name: 'SaaS 基础服务订阅', current: '38,200', mom: 8.5, total: '486,000', ratio: 72 },
+      { name: '数据扩容服务', current: '4,800', mom: 12.3, total: '58,200', ratio: 9 },
+      { name: '安全保险佣金抽成', current: '6,100', mom: 5.7, total: '78,400', ratio: 12 },
+      { name: '增值接口调用费', current: '2,400', mom: -2.1, total: '31,500', ratio: 5 },
+      { name: '设备运维服务费', current: '1,200', mom: 3.4, total: '15,800', ratio: 2 }
+    ];
+
     // ========== ECharts 初始化 ==========
     const chartRef = ref(null);
     let chartInstance = null;
@@ -1113,7 +1446,11 @@ createApp({
       cylinderList, selectedCylinder, showBlockchain,
       orderFilter, orderStatuses, filteredOrders,
       chartRef,
-      isLoading, showLoading
+      isLoading, showLoading,
+      fillingTotal, fillEvents,
+      govLedger, govGridTotal, govDots, govCompanies,
+      orderStats, orderList, lbsCards,
+      revenueData, revenueItems
     };
   }
 }).mount('#app');
