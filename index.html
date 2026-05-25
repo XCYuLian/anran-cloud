@@ -43,6 +43,8 @@ body {
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   overflow: hidden;
   height: 100vh;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.08) transparent;
 }
 
 /* 背景微光，右上蓝左下绿，很淡，别调太高不然显脏 */
@@ -108,7 +110,6 @@ body {
 }
 .menu-parent:hover { color: var(--text-primary); background: rgba(14,165,233,0.04); }
 .menu-parent.active { color: var(--blue-accent); border-left-color: var(--blue-accent); background: rgba(14,165,233,0.08); }
-.menu-parent .icon { width: 20px; text-align: center; font-size: 14px; }
 
 /* 二级菜单，缩进 52px */
 .menu-child {
@@ -181,10 +182,11 @@ body {
 /* 安检页的厨房场景，纯 CSS 画的灶台+钢瓶+软管 */
 .kitchen-frame {
   width: 100%; aspect-ratio: 4/3;
-  border-radius: 10px; overflow: hidden;
+  border-radius: 10px; overflow: visible;
   position: relative;
   border: 1px solid rgba(226,232,240,0.8);
 }
+.kitchen-frame > * { border-radius: 10px; overflow: hidden; }
 .kitchen-bg {
   width: 100%; height: 100%;
   background: linear-gradient(180deg, #E2E8F0 0%, #F1F5F9 60%, #CBD5E1 100%);
@@ -302,6 +304,14 @@ body {
 }
 .rank-fill { height: 100%; border-radius: 5px; transition: width 0.6s; }
 
+/* 表格复用样式，省掉一堆内联 */
+.tbl { width: 100%; font-size: 12px; border-collapse: collapse; }
+.tbl-hd { color: #94A3B8; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.tbl-th { padding: 10px 8px; }
+.tbl-row { border-bottom: 1px solid rgba(0,0,0,0.03); }
+.tbl-td { padding: 10px 8px; color: #334155; }
+.tbl-code { padding: 10px 8px; color: #0284C7; }
+
 /* 政务高危台账滚动列表 */
 .scroll-ledger {
   max-height: 200px; overflow-y: auto;
@@ -362,7 +372,6 @@ body {
       <template v-for="menu in menuTree" :key="menu.id">
         <div class="menu-parent" :class="{ active: menu.id === expandedParent }"
              @click="toggleParent(menu.id)">
-          <span class="icon" v-html="menu.icon"></span>
           <span>{{ menu.label }}</span>
           <i class="fa-solid fa-chevron-right menu-arrow" :class="{ open: menu.id === expandedParent }"></i>
         </div>
@@ -482,26 +491,21 @@ body {
         <div class="glass-card" style="padding:20px 24px; margin-bottom:20px;">
           <div style="font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;">一瓶一码溯源轨迹</div>
           <div style="font-size:11px;color:#94A3B8;margin-bottom:16px;">基于物联网标识解析与区块链存证，实现钢瓶全生命周期可信追溯</div>
-          <!-- 搜索栏 -->
-          <div style="display:flex;gap:12px;margin-bottom:16px;">
-            <input placeholder="输入钢瓶编码 / 溯源码查询..." style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);background:rgba(248,250,252,0.8);color:#0F172A;font-size:13px;outline:none;">
-            <button style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg,#0284C7,#0369A1);color:#fff;font-size:13px;cursor:pointer;">查询追溯</button>
-          </div>
           <!-- 钢瓶列表 -->
-          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+          <table class="tbl">
             <thead>
-              <tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-                <th style="padding:10px 8px;">钢瓶编码</th><th style="padding:10px 8px;">规格</th><th style="padding:10px 8px;">末次充装</th><th style="padding:10px 8px;">当前位置</th><th style="padding:10px 8px;">存证状态</th><th style="padding:10px 8px;">操作</th>
+              <tr class="tbl-hd">
+                <th class="tbl-th">钢瓶编码</th><th class="tbl-th">规格</th><th class="tbl-th">末次充装</th><th class="tbl-th">当前位置</th><th class="tbl-th">存证状态</th><th class="tbl-th">操作</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(c, i) in cylinderList" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
+              <tr v-for="(c, i) in cylinderList" :key="i" class="tbl-row">
                 <td style="padding:10px 8px;color:#0284C7;font-weight:600;">{{ c.code }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ c.spec }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ c.lastFill }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ c.location }}</td>
-                <td style="padding:10px 8px;"><span style="color:#059669;font-size:11px;">已上链</span></td>
-                <td style="padding:10px 8px;">
+                <td class="tbl-td">{{ c.spec }}</td>
+                <td class="tbl-td">{{ c.lastFill }}</td>
+                <td class="tbl-td">{{ c.location }}</td>
+                <td class="tbl-th"><span style="color:#059669;font-size:11px;">已上链</span></td>
+                <td class="tbl-th">
                   <button @click="showBlockchain(c)" style="padding:4px 12px;border-radius:4px;border:1px solid rgba(5,150,105,0.3);background:transparent;color:#059669;font-size:11px;cursor:pointer;">查看存证</button>
                 </td>
               </tr>
@@ -608,15 +612,15 @@ body {
             </div>
           </div>
           <div style="overflow-x:auto;">
-            <table style="width:100%;font-size:12px;border-collapse:collapse;">
-              <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-                <th style="padding:10px 8px;">角阀 ID</th><th style="padding:10px 8px;">绑定钢瓶</th><th style="padding:10px 8px;">安装地址</th><th style="padding:10px 8px;">信号强度</th><th style="padding:10px 8px;">阀门状态</th><th style="padding:10px 8px;">最后心跳</th>
+            <table class="tbl">
+              <thead><tr class="tbl-hd">
+                <th class="tbl-th">角阀 ID</th><th class="tbl-th">绑定钢瓶</th><th class="tbl-th">安装地址</th><th class="tbl-th">信号强度</th><th class="tbl-th">阀门状态</th><th class="tbl-th">最后心跳</th>
               </tr></thead>
               <tbody>
-                <tr v-for="i in 6" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
-                  <td style="padding:10px 8px;color:#0284C7;">VL-2026-00{{ 100 + i }}</td>
-                  <td style="padding:10px 8px;color:#334155;">CY-0{{ 230 + i }}</td>
-                  <td style="padding:10px 8px;color:#334155;">湘乡市东风小区 {{ i }} 栋</td>
+                <tr v-for="i in 6" :key="i" class="tbl-row">
+                  <td class="tbl-code">VL-2026-00{{ 100 + i }}</td>
+                  <td class="tbl-td">CY-0{{ 230 + i }}</td>
+                  <td class="tbl-td">湘乡市东风小区 {{ i }} 栋</td>
                   <td style="padding:10px 8px;color:#059669;">{{ 78 + i*2 }}%</td>
                   <td style="padding:10px 8px;color:#059669;">正常</td>
                   <td style="padding:10px 8px;color:#94A3B8;">{{ i < 4 ? '刚刚' : i + '分钟前' }}</td>
@@ -646,25 +650,25 @@ body {
               <div style="font-size:11px;color:#94A3B8;">今日已解除</div>
             </div>
           </div>
-          <table style="width:100%;font-size:12px;border-collapse:collapse;">
-            <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-              <th style="padding:10px 8px;">报警器 ID</th><th style="padding:10px 8px;">安装地址</th><th style="padding:10px 8px;">浓度读数</th><th style="padding:10px 8px;">报警等级</th><th style="padding:10px 8px;">触发时间</th><th style="padding:10px 8px;">联动状态</th>
+          <table class="tbl">
+            <thead><tr class="tbl-hd">
+              <th class="tbl-th">报警器 ID</th><th class="tbl-th">安装地址</th><th class="tbl-th">浓度读数</th><th class="tbl-th">报警等级</th><th class="tbl-th">触发时间</th><th class="tbl-th">联动状态</th>
             </tr></thead>
             <tbody>
               <tr style="border-bottom:1px solid rgba(0,0,0,0.03);background:rgba(254,242,242,0.4);">
-                <td style="padding:10px 8px;color:#0284C7;">AL-2026-03012</td>
-                <td style="padding:10px 8px;color:#334155;">湘乡市东风小区 3-402</td>
+                <td class="tbl-code">AL-2026-03012</td>
+                <td class="tbl-td">湘乡市东风小区 3-402</td>
                 <td style="padding:10px 8px;color:#EF4444;font-weight:700;">22%</td>
-                <td style="padding:10px 8px;"><span style="background:#EF4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">高 危</span></td>
-                <td style="padding:10px 8px;color:#334155;">14:32:08</td>
+                <td class="tbl-th"><span style="background:#EF4444;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">高 危</span></td>
+                <td class="tbl-td">14:32:08</td>
                 <td style="padding:10px 8px;color:#059669;">已闭锁+已派单</td>
               </tr>
-              <tr v-for="i in 4" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
-                <td style="padding:10px 8px;color:#0284C7;">AL-2026-030{{ 8 + i }}</td>
-                <td style="padding:10px 8px;color:#334155;">湘乡市各监测点 #{{ i }}</td>
+              <tr v-for="i in 4" :key="i" class="tbl-row">
+                <td class="tbl-code">AL-2026-030{{ 8 + i }}</td>
+                <td class="tbl-td">湘乡市各监测点 #{{ i }}</td>
                 <td style="padding:10px 8px;color:#059669;">0.0%</td>
-                <td style="padding:10px 8px;"><span style="background:#22C55E;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">正常</span></td>
-                <td style="padding:10px 8px;color:#334155;">--</td>
+                <td class="tbl-th"><span style="background:#22C55E;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;">正常</span></td>
+                <td class="tbl-td">--</td>
                 <td style="padding:10px 8px;color:#94A3B8;">--</td>
               </tr>
             </tbody>
@@ -684,18 +688,18 @@ body {
               {{ s.label }}
             </button>
           </div>
-          <table style="width:100%;font-size:12px;border-collapse:collapse;">
-            <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-              <th style="padding:10px 8px;">工单号</th><th style="padding:10px 8px;">来源</th><th style="padding:10px 8px;">隐患描述</th><th style="padding:10px 8px;">责任人</th><th style="padding:10px 8px;">状态</th><th style="padding:10px 8px;">截止日期</th>
+          <table class="tbl">
+            <thead><tr class="tbl-hd">
+              <th class="tbl-th">工单号</th><th class="tbl-th">来源</th><th class="tbl-th">隐患描述</th><th class="tbl-th">责任人</th><th class="tbl-th">状态</th><th class="tbl-th">截止日期</th>
             </tr></thead>
             <tbody>
-              <tr v-for="(o, i) in filteredOrders" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
-                <td style="padding:10px 8px;color:#0284C7;">{{ o.id }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ o.source }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ o.desc }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ o.person }}</td>
-                <td style="padding:10px 8px;"><span :style="{background:o.color,color:'#fff',padding:'2px 8px',borderRadius:'4px',fontSize:'11px'}">{{ o.status }}</span></td>
-                <td style="padding:10px 8px;color:#334155;">{{ o.deadline }}</td>
+              <tr v-for="(o, i) in filteredOrders" :key="i" class="tbl-row">
+                <td class="tbl-code">{{ o.id }}</td>
+                <td class="tbl-td">{{ o.source }}</td>
+                <td class="tbl-td">{{ o.desc }}</td>
+                <td class="tbl-td">{{ o.person }}</td>
+                <td class="tbl-th"><span :style="{background:o.color,color:'#fff',padding:'2px 8px',borderRadius:'4px',fontSize:'11px'}">{{ o.status }}</span></td>
+                <td class="tbl-td">{{ o.deadline }}</td>
               </tr>
             </tbody>
           </table>
@@ -740,18 +744,18 @@ body {
             </div>
           </div>
 
-          <table style="width:100%;font-size:12px;border-collapse:collapse;">
-            <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-              <th style="padding:10px 8px;">记录 ID</th><th style="padding:10px 8px;">钢瓶编码</th><th style="padding:10px 8px;">充装量(kg)</th><th style="padding:10px 8px;">充装时间</th><th style="padding:10px 8px;">操作员</th><th style="padding:10px 8px;">校验结果</th><th style="padding:10px 8px;">存证</th>
+          <table class="tbl">
+            <thead><tr class="tbl-hd">
+              <th class="tbl-th">记录 ID</th><th class="tbl-th">钢瓶编码</th><th class="tbl-th">充装量(kg)</th><th class="tbl-th">充装时间</th><th class="tbl-th">操作员</th><th class="tbl-th">校验结果</th><th class="tbl-th">存证</th>
             </tr></thead>
             <tbody>
-              <tr v-for="i in 5" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
-                <td style="padding:10px 8px;color:#0284C7;">FL-0520-00{{ i }}</td>
-                <td style="padding:10px 8px;color:#334155;">CY-0023{{ i }}</td>
-                <td style="padding:10px 8px;color:#334155;">{{ 12.5 - i*0.2 }}</td>
-                <td style="padding:10px 8px;color:#334155;">2026-05-20 0{{ i }}:{{ 10+i*3 }}:00</td>
-                <td style="padding:10px 8px;color:#334155;">操作员-{{ i }}</td>
-                <td style="padding:10px 8px;"><span style="color:#059669;font-size:11px;">校验通过</span></td>
+              <tr v-for="i in 5" :key="i" class="tbl-row">
+                <td class="tbl-code">FL-0520-00{{ i }}</td>
+                <td class="tbl-td">CY-0023{{ i }}</td>
+                <td class="tbl-td">{{ 12.5 - i*0.2 }}</td>
+                <td class="tbl-td">2026-05-20 0{{ i }}:{{ 10+i*3 }}:00</td>
+                <td class="tbl-td">操作员-{{ i }}</td>
+                <td class="tbl-th"><span style="color:#059669;font-size:11px;">校验通过</span></td>
                 <td style="padding:10px 8px;color:#059669;">已上链存证</td>
               </tr>
             </tbody>
@@ -844,20 +848,20 @@ body {
           <!-- 订单列表 -->
           <div class="glass-card" style="padding:18px 22px;">
             <div style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:12px;">实时订单大厅</div>
-            <table style="width:100%;font-size:12px;border-collapse:collapse;">
-              <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-                <th style="padding:10px 8px;">订单号</th><th style="padding:10px 8px;">客户地址</th><th style="padding:10px 8px;">规格</th><th style="padding:10px 8px;">状态</th><th style="padding:10px 8px;">骑手</th>
+            <table class="tbl">
+              <thead><tr class="tbl-hd">
+                <th class="tbl-th">订单号</th><th class="tbl-th">客户地址</th><th class="tbl-th">规格</th><th class="tbl-th">状态</th><th class="tbl-th">骑手</th>
               </tr></thead>
               <tbody>
-                <tr v-for="(o, i) in orderList" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                <tr v-for="(o, i) in orderList" :key="i" class="tbl-row">
                   <td style="padding:10px 8px;color:#0284C7;font-weight:600;">{{ o.id }}</td>
-                  <td style="padding:10px 8px;color:#334155;">{{ o.addr }}</td>
-                  <td style="padding:10px 8px;color:#334155;">{{ o.spec }}</td>
-                  <td style="padding:10px 8px;">
+                  <td class="tbl-td">{{ o.addr }}</td>
+                  <td class="tbl-td">{{ o.spec }}</td>
+                  <td class="tbl-th">
                     <span :style="{padding:'2px 8px',borderRadius:'4px',fontSize:'11px',color:'#fff',
                       background: o.status==='配送中'?'#0EA5E9': o.status==='待派单'?'#D97706':'#059669'}">{{ o.status }}</span>
                   </td>
-                  <td style="padding:10px 8px;color:#334155;">{{ o.rider || '—' }}</td>
+                  <td class="tbl-td">{{ o.rider || '—' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -917,16 +921,16 @@ body {
           </div>
 
           <!-- 财务明细表 -->
-          <table style="width:100%;font-size:12px;border-collapse:collapse;">
-            <thead><tr style="color:#94A3B8;text-align:left;border-bottom:1px solid rgba(0,0,0,0.06);">
-              <th style="padding:10px 8px;">科目</th><th style="padding:10px 8px;">本期发生</th><th style="padding:10px 8px;">环比</th><th style="padding:10px 8px;">累计</th><th style="padding:10px 8px;">占比</th>
+          <table class="tbl">
+            <thead><tr class="tbl-hd">
+              <th class="tbl-th">科目</th><th class="tbl-th">本期发生</th><th class="tbl-th">环比</th><th class="tbl-th">累计</th><th class="tbl-th">占比</th>
             </tr></thead>
             <tbody>
-              <tr v-for="(r, i) in revenueItems" :key="i" style="border-bottom:1px solid rgba(0,0,0,0.03);">
+              <tr v-for="(r, i) in revenueItems" :key="i" class="tbl-row">
                 <td style="padding:10px 8px;color:#0F172A;font-weight:600;">{{ r.name }}</td>
-                <td style="padding:10px 8px;color:#334155;">¥{{ r.current }}</td>
-                <td style="padding:10px 8px;" :style="{color: r.mom > 0 ? '#059669' : '#EF4444'}">{{ r.mom > 0 ? '▲' : '▼' }} {{ Math.abs(r.mom) }}%</td>
-                <td style="padding:10px 8px;color:#334155;">¥{{ r.total }}</td>
+                <td class="tbl-td">¥{{ r.current }}</td>
+                <td class="tbl-th" :style="{color: r.mom > 0 ? '#059669' : '#EF4444'}">{{ r.mom > 0 ? '▲' : '▼' }} {{ Math.abs(r.mom) }}%</td>
+                <td class="tbl-td">¥{{ r.total }}</td>
                 <td style="padding:10px 8px;color:#64748B;">{{ r.ratio }}%</td>
               </tr>
             </tbody>
@@ -955,7 +959,7 @@ body {
           <div class="skeleton-line" style="width:80%;margin-bottom:10px;" v-for="i in 5" :key="i"></div>
           <div style="margin-top:20px;padding:20px;border:1px dashed rgba(0,0,0,0.08);border-radius:10px;text-align:center;color:#94A3B8;font-size:12px;">
             <i class="fa-solid fa-cube" style="font-size:24px;margin-bottom:8px;display:block;"></i>
-            此模块数据引擎已就绪，等待正式环境接入后自动渲染
+            {{ pageTitle }}模块已就绪，等待正式环境接入后自动渲染
           </div>
         </div>
       </div>
@@ -969,6 +973,59 @@ body {
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script>
+// 静态配置，不依赖响应式，放外面免得每次 setup 都重建
+const MENUS = [
+  { id: 'data-center', label: '数据中心', icon: '', children: [
+    { id: 'dashboard', label: '工作台' },
+    { id: 'government', label: '政府监管大屏接口' }
+  ]},
+  { id: 'cylinder', label: '钢瓶资产管控', icon: '', children: [
+    { id: 'cylinder-archive', label: '钢瓶电子档案' },
+    { id: 'cylinder-trace', label: '一瓶一码溯源轨迹' },
+    { id: 'filling-record', label: '智能充装记录' },
+    { id: 'scrap-cylinder', label: '超期/报废瓶库' }
+  ]},
+  { id: 'iot-safety', label: '物联安全预警', icon: '', children: [
+    { id: 'valve-monitor', label: '智能角阀在线监测' },
+    { id: 'alarm-status', label: '报警器漏气动态' },
+    { id: 'hazard-order', label: '隐患整改工单' }
+  ]},
+  { id: 'order-dispatch', label: '订单与调度', icon: '', children: [
+    { id: 'order-hall', label: '实时订单大厅' },
+    { id: 'lbs-dispatch', label: 'LBS自动派单' }
+  ]},
+  { id: 'customer-safety', label: '客户与安检', icon: '', children: [
+    { id: 'customer-archive', label: '客户信息档案' },
+    { id: 'safety-inspection', label: '入户安检记录' },
+    { id: 'family-accounts', label: '亲情账号列表' }
+  ]},
+  { id: 'finance', label: '财务与结算', icon: '', children: [
+    { id: 'finance-reconcile', label: '充装与销售对账' },
+    { id: 'revenue-report', label: '营收数据报表' }
+  ]},
+  { id: 'settings', label: '系统设置', icon: '', children: [
+    { id: 'staff-mgmt', label: '员工与权限管理' },
+    { id: 'station-config', label: '气站基础配置' }
+  ]}
+];
+const PAGE_TITLES = {
+  'dashboard': '工作台', 'government': '政府监管大屏接口',
+  'cylinder-archive': '钢瓶电子档案', 'cylinder-trace': '一瓶一码溯源轨迹',
+  'filling-record': '智能充装记录', 'scrap-cylinder': '超期/报废瓶库',
+  'valve-monitor': '智能角阀在线监测', 'alarm-status': '报警器漏气动态',
+  'hazard-order': '隐患整改工单',
+  'order-hall': '实时订单大厅', 'lbs-dispatch': 'LBS自动派单',
+  'customer-archive': '客户信息档案', 'safety-inspection': '入户安检记录',
+  'family-accounts': '亲情账号列表',
+  'finance-reconcile': '充装与销售对账', 'revenue-report': '营收数据报表',
+  'staff-mgmt': '员工与权限管理', 'station-config': '气站基础配置'
+};
+const SKELETON_PAGES = [
+  'cylinder-archive', 'scrap-cylinder',
+  'lbs-dispatch', 'customer-archive', 'family-accounts',
+  'finance-reconcile', 'staff-mgmt', 'station-config'
+];
+
 const { createApp, ref, computed, onMounted, onUnmounted, nextTick, reactive, watch } = Vue;
 
 createApp({
@@ -977,60 +1034,12 @@ createApp({
     const currentPage = ref('dashboard');
     const expandedParent = ref('data-center');
 
-    const menuTree = [
-      { id: 'data-center', label: '数据中心', icon: '', children: [
-        { id: 'dashboard', label: '工作台' },
-        { id: 'government', label: '政府监管大屏接口' }
-      ]},
-      { id: 'cylinder', label: '钢瓶资产管控', icon: '', children: [
-        { id: 'cylinder-archive', label: '钢瓶电子档案' },
-        { id: 'cylinder-trace', label: '一瓶一码溯源轨迹' },
-        { id: 'filling-record', label: '智能充装记录' },
-        { id: 'scrap-cylinder', label: '超期/报废瓶库' }
-      ]},
-      { id: 'iot-safety', label: '物联安全预警', icon: '', children: [
-        { id: 'valve-monitor', label: '智能角阀在线监测' },
-        { id: 'alarm-status', label: '报警器漏气动态' },
-        { id: 'hazard-order', label: '隐患整改工单' }
-      ]},
-      { id: 'order-dispatch', label: '订单与调度', icon: '', children: [
-        { id: 'order-hall', label: '实时订单大厅' },
-        { id: 'lbs-dispatch', label: 'LBS自动派单' }
-      ]},
-      { id: 'customer-safety', label: '客户与安检', icon: '', children: [
-        { id: 'customer-archive', label: '客户信息档案' },
-        { id: 'safety-inspection', label: '入户安检记录' },
-        { id: 'family-accounts', label: '亲情账号列表' }
-      ]},
-      { id: 'finance', label: '财务与结算', icon: '', children: [
-        { id: 'finance-reconcile', label: '充装与销售对账' },
-        { id: 'revenue-report', label: '营收数据报表' }
-      ]},
-      { id: 'settings', label: '系统设置', icon: '', children: [
-        { id: 'staff-mgmt', label: '员工与权限管理' },
-        { id: 'station-config', label: '气站基础配置' }
-      ]}
-    ];
+    const menuTree = MENUS;
 
-    const pageTitleMap = {
-      'dashboard': '工作台', 'government': '政府监管大屏接口',
-      'cylinder-archive': '钢瓶电子档案', 'cylinder-trace': '一瓶一码溯源轨迹',
-      'filling-record': '智能充装记录', 'scrap-cylinder': '超期/报废瓶库',
-      'valve-monitor': '智能角阀在线监测', 'alarm-status': '报警器漏气动态',
-      'hazard-order': '隐患整改工单',
-      'order-hall': '实时订单大厅', 'lbs-dispatch': 'LBS自动派单',
-      'customer-archive': '客户信息档案', 'safety-inspection': '入户安检记录',
-      'family-accounts': '亲情账号列表',
-      'finance-reconcile': '充装与销售对账', 'revenue-report': '营收数据报表',
-      'staff-mgmt': '员工与权限管理', 'station-config': '气站基础配置'
-    };
+    const pageTitleMap = PAGE_TITLES;
 
     // 这些页面统一走骨架屏
-    const skeletonPages = [
-      'cylinder-archive', 'scrap-cylinder',
-      'lbs-dispatch', 'customer-archive', 'family-accounts',
-      'finance-reconcile', 'staff-mgmt', 'station-config'
-    ];
+    const skeletonPages = SKELETON_PAGES;
 
     const isSkeletonPage = computed(() => skeletonPages.includes(currentPage.value));
     const pageTitle = computed(() => pageTitleMap[currentPage.value] || currentPage.value);
@@ -1066,6 +1075,7 @@ createApp({
 
     let gasTimer, userTimer;
     let chartResizeHandler = null;
+    let govChartResizeHandler = null;
 
     onMounted(() => {
       // 气瓶总量 ±1，每 4 秒抖一次
@@ -1098,6 +1108,7 @@ createApp({
       clearInterval(gasTimer);
       clearInterval(userTimer);
       if (chartResizeHandler) window.removeEventListener('resize', chartResizeHandler);
+      if (govChartResizeHandler) window.removeEventListener('resize', govChartResizeHandler);
       if (chartInstance) chartInstance.dispose();
       if (govChartInstance) govChartInstance.dispose();
     });
@@ -1142,6 +1153,7 @@ createApp({
     });
 
     // ok=true 是正常充装，false 是被电磁阀锁了
+    // 静态演示数据，不走实时抖动（和页面顶部那几个不一样）
     const fillingTotal = ref(247);
     const fillEvents = [
       { ok: true, msg: '钢瓶 LPG-0982：扫码校验通过，准予充装（12.5kg，充装枪 #03）', time: '14:28:05' },
@@ -1228,6 +1240,8 @@ createApp({
         ]
       };
       govChartInstance.setOption(option);
+      govChartResizeHandler = () => { if (govChartInstance) govChartInstance.resize(); };
+      window.addEventListener('resize', govChartResizeHandler);
     }
 
     // 切到政府大屏时再初始化图表，不然 DOM 还没渲染
@@ -1301,6 +1315,7 @@ createApp({
           borderColor: 'rgba(0,0,0,0.08)',
           textStyle: { color: '#0F172A', fontSize: 12 },
           formatter: function(params) {
+            if (!params || !params.length) return '';
             let html = '<div style="font-weight:700;margin-bottom:4px;">' + params[0].axisValue + '</div>';
             params.forEach(function(p) {
               html += '<div style="display:flex;align-items:center;gap:6px;">' +
@@ -1384,7 +1399,7 @@ createApp({
       currentPage, expandedParent, menuTree,
       isSkeletonPage, pageTitle, breadcrumb,
       navigateTo, toggleParent,
-      gasTotal, newUsers, gasFlash, userFlash,
+      gasFlash, userFlash,
       gasTotalDisplay, userTotalDisplay,
       recentAlerts,
       cylinderList, selectedCylinder, showBlockchain,
